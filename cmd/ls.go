@@ -19,15 +19,11 @@ var lsCmd = &cobra.Command{
 			return fmt.Errorf("-l/--library is required")
 		}
 
-		lib, err := calibre.Open(lpath)
+		meta, err := calibre.Read(lpath)
 		if err != nil {
 			return err
 		}
-		books, err := lib.Books()
-		if err != nil {
-			return err
-		}
-		return dump(books)
+		return dump(meta)
 	},
 }
 

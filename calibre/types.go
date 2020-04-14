@@ -20,3 +20,10 @@ type Book struct {
 	HasCover     bool       `json:"has_cover" db:"has_cover"`
 	LastModified time.Time  `json:"last_modified" db:"last_modified"`
 }
+
+type Author struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+	Sort string `json:"sort" db:"sort"`
+	Link string `json:"link" db:"link"`
+}
