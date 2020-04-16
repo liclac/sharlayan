@@ -53,10 +53,12 @@ func Read(path string) (*Metadata, error) {
 		return nil, err
 	}
 	for _, book := range m.Books {
-		if err := db.Select(&book.Data, `SELECT * FROM data WHERE book = ?`, book.ID); err != nil {
+		if err := db.Select(&book.Data,
+			`SELECT * FROM data WHERE book = ?`, book.ID); err != nil {
 			return nil, err
 		}
-		if err := db.Select(&book.PluginData, `SELECT * FROM books_plugin_data WHERE book = ?`, book.ID); err != nil {
+		if err := db.Select(&book.PluginData,
+			`SELECT * FROM books_plugin_data WHERE book = ?`, book.ID); err != nil {
 			return nil, err
 		}
 
