@@ -19,6 +19,22 @@ type Book struct {
 	UUID         string     `json:"uuid" db:"uuid"`
 	HasCover     bool       `json:"has_cover" db:"has_cover"`
 	LastModified time.Time  `json:"last_modified" db:"last_modified"`
+
+	// Inlined: comments (id, book, text), UNIQUE on book.
+	Comment string `json:"_comment" db:"_comment"`
+	// Inlined: languages (id, lang_code), UNIQUE lang_code.
+	Languages []string `json:"_languages" db:"-"`
+
+	Data    []*Data   `json:"_data" db:"-"`    // many-to-one
+	Authors []*Author `json:"_authors" db:"-"` // many-to-many
+}
+
+type Data struct {
+	ID               int    `json:"id" db:"id"`
+	Book             int    `json:"book" db:"book"`
+	Format           string `json:"format" db:"format"`
+	UncompressedSize int    `json:"uncompressed_size" db:"uncompressed_size"`
+	Name             string `json:"name" db:"name"`
 }
 
 type Author struct {
@@ -26,4 +42,7 @@ type Author struct {
 	Name string `json:"name" db:"name"`
 	Sort string `json:"sort" db:"sort"`
 	Link string `json:"link" db:"link"`
+
+	// Relationships.
+	Books []*Book `json:"-" db:"-"`
 }
