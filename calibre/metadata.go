@@ -37,11 +37,11 @@ func Read(path string) (*Metadata, error) {
 		return nil, err
 	}
 
-	// Fetch objects from the database.
 	m := Metadata{}
 	if err := db.Select(&m.Authors, `SELECT * FROM authors`); err != nil {
 		return nil, err
 	}
+
 	// Comments are UNIQUE for a book, so we can inline them right here.
 	if err := db.Select(&m.Books, `
         SELECT books.*,
@@ -53,8 +53,10 @@ func Read(path string) (*Metadata, error) {
 		return nil, err
 	}
 	for _, book := range m.Books {
-		// Books can have zero or more corresponding files on disk.
 		if err := db.Select(&book.Data, `SELECT * FROM data WHERE book = ?`, book.ID); err != nil {
+			return nil, err
+		}
+		if err := db.Select(&book.PluginData, `SELECT * FROM books_plugin_data WHERE book = ?`, book.ID); err != nil {
 			return nil, err
 		}
 

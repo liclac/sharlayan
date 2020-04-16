@@ -20,13 +20,15 @@ type Book struct {
 	HasCover     bool       `json:"has_cover" db:"has_cover"`
 	LastModified time.Time  `json:"last_modified" db:"last_modified"`
 
-	// Inlined: comments (id, book, text), UNIQUE on book.
+	// Inlined: comments (id, book, text), UNIQUE book.
 	Comment string `json:"_comment" db:"_comment"`
 	// Inlined: languages (id, lang_code), UNIQUE lang_code.
 	Languages []string `json:"_languages" db:"-"`
 
 	Data    []*Data   `json:"_data" db:"-"`    // many-to-one
 	Authors []*Author `json:"_authors" db:"-"` // many-to-many
+
+	PluginData []*BookPluginData `json:"_plugin_data" db:"-"`
 }
 
 type Data struct {
@@ -35,6 +37,13 @@ type Data struct {
 	Format           string `json:"format" db:"format"`
 	UncompressedSize int    `json:"uncompressed_size" db:"uncompressed_size"`
 	Name             string `json:"name" db:"name"`
+}
+
+type BookPluginData struct {
+	ID   int    `json:"id" db:"id"`
+	Book int    `json:"book" db:"book"`
+	Name string `json:"name" db:"name"`
+	Val  string `json:"val" db:"val"`
 }
 
 type Author struct {
