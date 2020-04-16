@@ -31,10 +31,11 @@ type Book struct {
 	// Note: _link.lang_code actually references lang.id, not lang.lang_code.
 	Languages []string `json:"_languages" db:"-"`
 
-	Data    []*Data   `json:"_data" db:"-"`    // many-to-one
-	Authors []*Author `json:"_authors" db:"-"` // many-to-many
-	Series  []*Series `json:"_series" db:"-"`  // many-to-many
+	Authors IDs `json:"_authors" db:"_authors"` // many-to-many
+	Series  IDs `json:"_series" db:"_series"`   // many-to-many
+	Tags    IDs `json:"_tags" db:"_tags"`       // many-to-many
 
+	Data       []*Data           `json:"_data" db:"-"` // many-to-one
 	PluginData []*BookPluginData `json:"_plugin_data" db:"-"`
 }
 
@@ -59,7 +60,7 @@ type Author struct {
 	Sort string `json:"sort" db:"sort"`
 	Link string `json:"link" db:"link"`
 
-	Books []*Book `json:"-" db:"-"` // many-to-many, omitted for circular
+	Books IDs `json:"_books" db:"_books"` // many-to-many
 }
 
 type Series struct {
@@ -67,5 +68,12 @@ type Series struct {
 	Name string `json:"name" db:"name"` // UNIQUE
 	Sort string `json:"sort" db:"sort"`
 
-	Books []*Book `json:"-" db:"-"` // many-to-many, omitted for circular
+	Books IDs `json:"_books" db:"_books"` // many-to-many
+}
+
+type Tag struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"` // UNIQUE
+
+	Books IDs `json:"_books" db:"_books"` // many-to-many
 }
