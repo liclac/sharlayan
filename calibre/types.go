@@ -20,6 +20,9 @@ type Book struct {
 	HasCover     bool       `json:"has_cover" db:"has_cover"`
 	LastModified time.Time  `json:"last_modified" db:"last_modified"`
 
+	// Inlined: ratings (id, UNIQUE rating), _link (id, UNIQUE(book, rating)).
+	// Yes, that's a many-to-many link of score (0-10) proxies to books.
+	Rating *int `json:"_rating" db:"_rating"`
 	// Inlined: comments (id, book, text), UNIQUE book.
 	Comment string `json:"_comment" db:"_comment"`
 	// Inlined: languages (id, lang_code), UNIQUE lang_code.

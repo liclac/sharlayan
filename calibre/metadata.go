@@ -43,11 +43,24 @@ func Read(path string) (*Metadata, error) {
 	}
 
 	// Comments are UNIQUE for a book, so we can inline them right here.
+	//
+	// Ratings, meanwhile, use an odd system where each rating (0-10) is an object
+	// in a separate table, many-to-many linked to books... which means a book can
+	// technically have more than one rating, although the UI doesn't allow this.
+	// Should this still happen somehow, a LEFT JOIN would duplicate the book, so
+	// we use a subquery to deduplicate the links before joining with it.
 	if err := db.Select(&m.Books, `
         SELECT books.*,
-            IFNULL(comments.text, '') AS _comment
+            COALESCE(comments.text, '') AS _comment,
+            ratings.rating AS _rating
         FROM books
-        LEFT JOIN comments ON books.id = comments.book
+        LEFT JOIN comments ON comments.book = books.id
+        LEFT JOIN (
+            SELECT link.book, ratings.rating
+            FROM books_ratings_link AS link
+            LEFT JOIN ratings ON link.rating
+            GROUP BY link.book
+        ) AS ratings ON ratings.book = books.id
         ORDER BY id
     `); err != nil {
 		return nil, err
