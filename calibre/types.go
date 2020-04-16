@@ -22,15 +22,18 @@ type Book struct {
 
 	// Inlined: comments (id, UNIQUE book, text).
 	Comment string `json:"_comment" db:"_comment"`
+
 	// I: ratings (id, UNIQUE rating), _link (id, UNIQUE(book, rating)).
 	// Yes, that's a many-to-many link of score (0-10) proxies to books.
 	Rating *int `json:"_rating" db:"_rating"`
+
 	// I: languages (id, UNIQUE lang_code), _link (id, UNIQUE(book, lang_code), item_order).
 	// Note: _link.lang_code actually references lang.id, not lang.lang_code.
 	Languages []string `json:"_languages" db:"-"`
 
 	Data    []*Data   `json:"_data" db:"-"`    // many-to-one
 	Authors []*Author `json:"_authors" db:"-"` // many-to-many
+	Series  []*Series `json:"_series" db:"-"`  // many-to-many
 
 	PluginData []*BookPluginData `json:"_plugin_data" db:"-"`
 }
@@ -52,10 +55,17 @@ type BookPluginData struct {
 
 type Author struct {
 	ID   int    `json:"id" db:"id"`
-	Name string `json:"name" db:"name"`
+	Name string `json:"name" db:"name"` // UNIQUE
 	Sort string `json:"sort" db:"sort"`
 	Link string `json:"link" db:"link"`
 
-	// Relationships.
-	Books []*Book `json:"-" db:"-"`
+	Books []*Book `json:"-" db:"-"` // many-to-many, omitted for circular
+}
+
+type Series struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"` // UNIQUE
+	Sort string `json:"sort" db:"sort"`
+
+	Books []*Book `json:"-" db:"-"` // many-to-many, omitted for circular
 }

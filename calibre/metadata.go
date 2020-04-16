@@ -8,11 +8,21 @@ import (
 )
 
 type Metadata struct {
+	Series  []*Series `json:"series"`
 	Authors []*Author `json:"authors"`
 	Books   []*Book   `json:"books"`
 }
 
-func (m Metadata) Author(id int) *Author {
+func (m Metadata) GetSeries(id int) *Series {
+	for _, s := range m.Series {
+		if s.ID == id {
+			return s
+		}
+	}
+	return nil
+}
+
+func (m Metadata) GetAuthor(id int) *Author {
 	for _, a := range m.Authors {
 		if a.ID == id {
 			return a
@@ -21,7 +31,7 @@ func (m Metadata) Author(id int) *Author {
 	return nil
 }
 
-func (m Metadata) Book(id int) *Book {
+func (m Metadata) GetBook(id int) *Book {
 	for _, b := range m.Books {
 		if b.ID == id {
 			return b
@@ -38,6 +48,9 @@ func Read(path string) (*Metadata, error) {
 	}
 
 	m := Metadata{}
+	if err := db.Select(&m.Series, `SELECT * FROM series`); err != nil {
+		return nil, err
+	}
 	if err := db.Select(&m.Authors, `SELECT * FROM authors`); err != nil {
 		return nil, err
 	}
@@ -97,11 +110,28 @@ func Read(path string) (*Metadata, error) {
 		if err := rows.Scan(&bookID, &authorID); err != nil {
 			return nil, err
 		}
-		book := m.Book(bookID)
-		author := m.Author(authorID)
+		book := m.GetBook(bookID)
+		author := m.GetAuthor(authorID)
 		if book != nil && author != nil {
 			book.Authors = append(book.Authors, author)
 			author.Books = append(author.Books, book)
+		}
+	}
+
+	rows, err = db.Query(`SELECT book, series FROM books_series_link`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var bookID, seriesID int
+		if err := rows.Scan(&bookID, &seriesID); err != nil {
+			return nil, err
+		}
+		book := m.GetBook(bookID)
+		series := m.GetSeries(seriesID)
+		if book != nil && series != nil {
+			book.Series = append(book.Series, series)
+			series.Books = append(series.Books, book)
 		}
 	}
 
