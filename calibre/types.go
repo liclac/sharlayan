@@ -20,12 +20,13 @@ type Book struct {
 	HasCover     bool       `json:"has_cover" db:"has_cover"`
 	LastModified time.Time  `json:"last_modified" db:"last_modified"`
 
-	// Inlined: ratings (id, UNIQUE rating), _link (id, UNIQUE(book, rating)).
+	// Inlined: comments (id, UNIQUE book, text).
+	Comment string `json:"_comment" db:"_comment"`
+	// I: ratings (id, UNIQUE rating), _link (id, UNIQUE(book, rating)).
 	// Yes, that's a many-to-many link of score (0-10) proxies to books.
 	Rating *int `json:"_rating" db:"_rating"`
-	// Inlined: comments (id, book, text), UNIQUE book.
-	Comment string `json:"_comment" db:"_comment"`
-	// Inlined: languages (id, lang_code), UNIQUE lang_code.
+	// I: languages (id, UNIQUE lang_code), _link (id, UNIQUE(book, lang_code), item_order).
+	// Note: _link.lang_code actually references lang.id, not lang.lang_code.
 	Languages []string `json:"_languages" db:"-"`
 
 	Data    []*Data   `json:"_data" db:"-"`    // many-to-one
