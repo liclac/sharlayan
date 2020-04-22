@@ -31,11 +31,13 @@ type Book struct {
 	// Note: _link.lang_code actually references lang.id, not lang.lang_code.
 	Languages []string `json:"_languages" db:"-"`
 
-	Authors IDs `json:"_authors" db:"_authors"` // many-to-many
-	Series  IDs `json:"_series" db:"_series"`   // many-to-many
-	Tags    IDs `json:"_tags" db:"_tags"`       // many-to-many
+	// Many-to-Many
+	Authors IDs `json:"_authors" db:"_authors"`
+	Series  IDs `json:"_series" db:"_series"`
+	Tags    IDs `json:"_tags" db:"_tags"`
 
-	Data       []*Data           `json:"_data" db:"-"` // many-to-one
+	// Many-to-One
+	Data       []*Data           `json:"_data" db:"-"`
 	PluginData []*BookPluginData `json:"_plugin_data" db:"-"`
 }
 
