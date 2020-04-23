@@ -51,7 +51,7 @@ func init() {
 		panic(err)
 	}
 
-	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "Path to calibre library")
+	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "path to calibre library")
 
 	viper.BindPFlags(rootCmd.PersistentFlags())
 	cobra.OnInitialize(initConfig)
