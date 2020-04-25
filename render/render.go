@@ -23,13 +23,21 @@ type Config struct {
 }
 
 func Render(cfg Config, meta *calibre.Metadata) error {
+	t, err := LoadTemplates(cfg)
+	if err != nil {
+		return fmt.Errorf("couldn't load templates: %w", err)
+	}
+	return RenderTree(cfg.Out, t, Root(cfg, meta))
+}
+
+func LoadTemplates(cfg Config) (*template.Template, error) {
 	t := template.New("").Funcs(template.FuncMap{
 		"cfg": func() *Config { return &cfg },
 	})
 
 	// Parse the whole template file tree into named templates.
 	// 'templates/index.tmpl' -> 'index', 'templates/book/list.tmpl' -> 'book/list'.
-	if err := filepath.Walk(cfg.Templates,
+	return t, filepath.Walk(cfg.Templates,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -66,12 +74,45 @@ func Render(cfg Config, meta *calibre.Metadata) error {
 			}).Debug("template init: loaded template")
 			return err
 		},
-	); err != nil {
-		return err
+	)
+}
+
+func RenderTree(outPath string, t *template.Template, node Node) error {
+	return renderTree(outPath, t, node, nil)
+}
+
+func renderTree(outPath string, t *template.Template, node Node, parents []string) error {
+	// Ignore empty nodes, except for the root.
+	if len(parents) > 0 && node.Item == nil && len(node.Items) == 0 {
+		return nil
+	}
+
+	// All nodes except for the root must have a Filename.
+	parentsAndSelf := append(parents, node.Filename)
+	relPath := filepath.Join(parentsAndSelf...)
+	if node.Filename == "" && len(parents) > 0 {
+		return fmt.Errorf("child has no filename: %s", relPath)
+	}
+
+	// Items must have a Template, collections get a default of "_nav".
+	tname := node.Template
+	if tname == "" && node.Item == nil {
+		tname = "_nav"
+	}
+	if tname == "" {
+		return fmt.Errorf("no template set for: %s", relPath)
 	}
 
 	// Render!
-	return render(filepath.Join(cfg.Out, "index.html"), t, "index", nil)
+	if err := render(filepath.Join(outPath, relPath, "index.html"), t, tname, node.Item); err != nil {
+		return fmt.Errorf("error rendering %s (template: '%s'): %w", relPath, tname, err)
+	}
+	for _, child := range node.Items {
+		if err := renderTree(outPath, t, child, parentsAndSelf); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func render(path string, t *template.Template, name string, tctx interface{}) error {
