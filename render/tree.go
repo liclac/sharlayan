@@ -1,6 +1,8 @@
 package render
 
 import (
+	"strconv"
+
 	"github.com/liclac/sharlayan/calibre"
 )
 
@@ -20,7 +22,34 @@ type Node struct {
 	Items []Node
 }
 
-// Returns a root node built from your Calibre metadata.
+// Builds a root node, and a tree based on your Calibre metadata.
 func Root(cfg Config, meta *calibre.Metadata) Node {
-	return Node{Template: "index"}
+	books := Node{Filename: "book", Items: make([]Node, len(meta.Books))}
+	for i, book := range meta.Books {
+		books.Items[i] = Node{Filename: strconv.Itoa(book.ID), Template: "book", Item: book}
+	}
+
+	authors := Node{Filename: "author"}
+	if !cfg.Author.NoIndex {
+		authors.Items = make([]Node, len(meta.Authors))
+		for i, v := range meta.Authors {
+			authors.Items[i] = Node{Filename: strconv.Itoa(v.ID), Template: "author", Item: v}
+		}
+	}
+	series := Node{Filename: "series"}
+	if !cfg.Series.NoIndex {
+		series.Items = make([]Node, len(meta.Series))
+		for i, v := range meta.Series {
+			series.Items[i] = Node{Filename: strconv.Itoa(v.ID), Template: "series", Item: v}
+		}
+	}
+	tags := Node{Filename: "tags"}
+	if !cfg.Tag.NoIndex {
+		tags.Items = make([]Node, len(meta.Tags))
+		for i, v := range meta.Tags {
+			tags.Items[i] = Node{Filename: strconv.Itoa(v.ID), Template: "tag", Item: v}
+		}
+	}
+
+	return Node{Template: "index", Items: []Node{books, authors, series, tags}}
 }
