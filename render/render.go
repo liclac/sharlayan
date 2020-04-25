@@ -15,16 +15,16 @@ import (
 
 type Config struct {
 	Title string
-}
 
-type TemplateContext struct {
-	Cfg  Config
-	Meta *calibre.Metadata
 }
 
 func Render(outPath, templatePath string, meta *calibre.Metadata, cfg Config) error {
+	t := template.New("").Funcs(template.FuncMap{
+		"cfg": func() *Config { return &cfg },
+	})
+
 	// Parse the whole template file tree into named templates.
-	t := template.New("")
+	// 'templates/index.tmpl' -> 'index', 'templates/book/list.tmpl' -> 'book/list'.
 	if err := filepath.Walk(templatePath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -67,11 +67,10 @@ func Render(outPath, templatePath string, meta *calibre.Metadata, cfg Config) er
 	}
 
 	// Render!
-	tctx := &TemplateContext{Cfg: cfg, Meta: meta}
-	return renderToFile(filepath.Join(outPath, "index.html"), t, "index", tctx)
+	return render(filepath.Join(outPath, "index.html"), t, "index", nil)
 }
 
-func renderToFile(path string, t *template.Template, name string, tctx interface{}) error {
+func render(path string, t *template.Template, name string, tctx interface{}) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return err
 	}
