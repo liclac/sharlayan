@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,6 +35,12 @@ var rootCmd = &cobra.Command{
 	Use:   "sharlayan",
 	Short: "What's in your library?",
 	Long:  `What's in your library?`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		log.SetLevel(log.InfoLevel)
+		if viper.GetBool("verbose") {
+			log.SetLevel(log.DebugLevel)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -51,6 +58,7 @@ func init() {
 		panic(err)
 	}
 
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable debug logging")
 	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "path to calibre library")
 
 	viper.BindPFlags(rootCmd.PersistentFlags())
