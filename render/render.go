@@ -14,25 +14,29 @@ import (
 )
 
 type Config struct {
-	Title string
+	// Input.
+	Out       string `mapstructure:"out"`
+	Templates string `mapstructure:"templates"`
 
+	// Output.
+	Title string `mapstructure:"title"`
 }
 
-func Render(outPath, templatePath string, meta *calibre.Metadata, cfg Config) error {
+func Render(cfg Config, meta *calibre.Metadata) error {
 	t := template.New("").Funcs(template.FuncMap{
 		"cfg": func() *Config { return &cfg },
 	})
 
 	// Parse the whole template file tree into named templates.
 	// 'templates/index.tmpl' -> 'index', 'templates/book/list.tmpl' -> 'book/list'.
-	if err := filepath.Walk(templatePath,
+	if err := filepath.Walk(cfg.Templates,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
 			// Find the relative template path, eg. 'templates/book/list.tmpl' -> 'book/list.tmpl'.
-			filename, err := filepath.Rel(templatePath, path)
+			filename, err := filepath.Rel(cfg.Templates, path)
 			if err != nil {
 				return fmt.Errorf("couldn't get relative template path: %s: %w", path, err)
 			}
@@ -67,7 +71,7 @@ func Render(outPath, templatePath string, meta *calibre.Metadata, cfg Config) er
 	}
 
 	// Render!
-	return render(filepath.Join(outPath, "index.html"), t, "index", nil)
+	return render(filepath.Join(cfg.Out, "index.html"), t, "index", nil)
 }
 
 func render(path string, t *template.Template, name string, tctx interface{}) error {

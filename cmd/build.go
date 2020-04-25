@@ -19,26 +19,25 @@ var buildCmd = &cobra.Command{
 		if lpath == "" {
 			return fmt.Errorf("-l/--library is required")
 		}
-		outPath := viper.GetString("out")
-		templatePath := viper.GetString("templates")
-		cfg := render.Config{
-			Title: viper.GetString("title"),
-		}
 
+		var cfg render.Config
+		if err := viper.Unmarshal(&cfg); err != nil {
+			return err
+		}
 		meta, err := calibre.Read(lpath)
 		if err != nil {
 			return err
 		}
-		return render.Render(outPath, templatePath, meta, cfg)
+		return render.Render(cfg, meta)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(buildCmd)
 
-	buildCmd.Flags().String("title", "My Library", "title for rendered site")
 	buildCmd.Flags().StringP("out", "o", "www", "path to output")
 	buildCmd.Flags().String("templates", "templates", "path to templates")
+	buildCmd.Flags().String("title", "My Library", "title for rendered site")
 
 	viper.BindPFlags(buildCmd.Flags())
 }
