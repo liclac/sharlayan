@@ -119,7 +119,7 @@ func (r *Renderer) Render(node Node) (int, error) {
 
 func (r *Renderer) renderTree(node Node, parents []string) (int, error) {
 	// Ignore empty nodes, except for the root.
-	if len(parents) > 0 && node.Item == nil && len(node.Items) == 0 {
+	if len(parents) > 0 && node.Item == nil && len(node.Children) == 0 {
 		return 0, nil
 	}
 
@@ -130,18 +130,9 @@ func (r *Renderer) renderTree(node Node, parents []string) (int, error) {
 		return 0, fmt.Errorf("child has no filename: %s", relPath)
 	}
 
-	// Items must have a Template, collections get a default of "_nav".
-	tname := node.Template
-	if tname == "" && node.Item == nil {
-		tname = "_nav"
-	}
-	if tname == "" {
-		return 0, fmt.Errorf("no template set for: %s", relPath)
-	}
-
 	// Render children, count how many pages were actually rendered.
 	var rendered int
-	for _, child := range node.Items {
+	for _, child := range node.Children {
 		childRendered, err := r.renderTree(child, parentsAndSelf)
 		if err != nil {
 			return rendered, err
@@ -151,6 +142,10 @@ func (r *Renderer) renderTree(node Node, parents []string) (int, error) {
 
 	// If this is an Item, or any children rendered pages, render an index page and count it.
 	if node.Item != nil || rendered > 0 {
+		tname := node.Template
+		if tname == "" {
+			return 0, fmt.Errorf("no template set for: %s", relPath)
+		}
 		indexPath := filepath.Join(r.Config.Out, relPath, "index.html")
 		if err := r.render(indexPath, tname, node.Item); err != nil {
 			return rendered, fmt.Errorf("error rendering %s (template: '%s'): %w", relPath, tname, err)
