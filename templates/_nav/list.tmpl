@@ -1,0 +1,5 @@
+<ul>
+{{range .}}
+<li>{{with linkTo .}}<a href="{{.Href}}">{{.Text}}{{end}}</a>
+{{end}}
+</ul>

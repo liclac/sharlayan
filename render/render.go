@@ -48,9 +48,7 @@ func New(cfg Config, meta *calibre.Metadata) (*Renderer, error) {
 }
 
 func (r *Renderer) loadTemplates() error {
-	r.Base = r.Base.Funcs(template.FuncMap{
-		"cfg": func() *Config { return &r.Config },
-	})
+	r.Base = r.Base.Funcs(NewFuncs(&r.Config).Map())
 	names, err := r.listTemplates()
 	if err != nil {
 		return fmt.Errorf("couldn't list templates: %w", err)
