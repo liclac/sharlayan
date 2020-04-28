@@ -32,9 +32,12 @@ type Book struct {
 	Languages []string `json:"_languages" db:"-"`
 
 	// Many-to-Many
-	Authors IDs `json:"_authors" db:"_authors"`
-	Series  IDs `json:"_series" db:"_series"`
-	Tags    IDs `json:"_tags" db:"_tags"`
+	AuthorIDs IDs       `json:"_author_ids" db:"_authors"`
+	Authors   []*Author `json:"-" db:"-"`
+	SeriesIDs IDs       `json:"_series_ids" db:"_series"`
+	Series    []*Series `json:"-" db:"-"`
+	TagIDs    IDs       `json:"_tag_ids" db:"_tags"`
+	Tags      []*Tag    `json:"-" db:"-"`
 
 	// Many-to-One
 	Data       []*Data           `json:"_data" db:"-"`
@@ -43,17 +46,17 @@ type Book struct {
 
 type Data struct {
 	ID               int    `json:"id" db:"id"`
-	Book             int    `json:"book" db:"book"`
+	BookID           int    `json:"book_id" db:"book"`
 	Format           string `json:"format" db:"format"`
 	UncompressedSize int    `json:"uncompressed_size" db:"uncompressed_size"`
 	Name             string `json:"name" db:"name"`
 }
 
 type BookPluginData struct {
-	ID   int    `json:"id" db:"id"`
-	Book int    `json:"book" db:"book"`
-	Name string `json:"name" db:"name"`
-	Val  string `json:"val" db:"val"`
+	ID     int    `json:"id" db:"id"`
+	BookID int    `json:"book_id" db:"book"`
+	Name   string `json:"name" db:"name"`
+	Val    string `json:"val" db:"val"`
 }
 
 type Author struct {
@@ -62,7 +65,8 @@ type Author struct {
 	Sort string `json:"sort" db:"sort"`
 	Link string `json:"link" db:"link"`
 
-	Books IDs `json:"_books" db:"_books"` // many-to-many
+	BookIDs IDs     `json:"_book_ids" db:"_books"` // many-to-many
+	Books   []*Book `json:"-" db:"-"`
 }
 
 type Series struct {
@@ -70,12 +74,14 @@ type Series struct {
 	Name string `json:"name" db:"name"` // UNIQUE
 	Sort string `json:"sort" db:"sort"`
 
-	Books IDs `json:"_books" db:"_books"` // many-to-many
+	BookIDs IDs     `json:"_book_ids" db:"_books"` // many-to-many
+	Books   []*Book `json:"-" db:"-"`
 }
 
 type Tag struct {
 	ID   int    `json:"id" db:"id"`
 	Name string `json:"name" db:"name"` // UNIQUE
 
-	Books IDs `json:"_books" db:"_books"` // many-to-many
+	BookIDs IDs     `json:"_book_ids" db:"_books"` // many-to-many
+	Books   []*Book `json:"-" db:"-"`
 }

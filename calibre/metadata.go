@@ -23,6 +23,25 @@ func Read(path string) (*Metadata, error) {
 
 	m := Metadata{}
 
+	if err := db.Select(&m.Authors, `SELECT * FROM authors INNER JOIN (
+		SELECT author AS id, group_concat(book) _books FROM books_authors_link
+		GROUP BY author) AS _books USING (id)
+	`); err != nil {
+		return nil, err
+	}
+	if err := db.Select(&m.Series, `SELECT * FROM series INNER JOIN (
+		SELECT series AS id, group_concat(book) _books FROM books_series_link
+		GROUP BY series) AS _books USING (id)
+	`); err != nil {
+		return nil, err
+	}
+	if err := db.Select(&m.Tags, `SELECT * FROM tags INNER JOIN (
+		SELECT tag AS id, group_concat(book) _books FROM books_tags_link
+		GROUP BY tag) AS _books USING (id)
+	`); err != nil {
+		return nil, err
+	}
+
 	// Comments are UNIQUE for a book, so we can inline them right here.
 	//
 	// Ratings, meanwhile, use an odd system where each rating (0-10) is an object
@@ -78,25 +97,23 @@ func Read(path string) (*Metadata, error) {
         `, book.ID); err != nil {
 			return nil, err
 		}
-	}
 
-	if err := db.Select(&m.Authors, `SELECT * FROM authors INNER JOIN (
-		SELECT author AS id, group_concat(book) _books FROM books_authors_link
-		GROUP BY author) AS _books USING (id)
-	`); err != nil {
-		return nil, err
-	}
-	if err := db.Select(&m.Series, `SELECT * FROM series INNER JOIN (
-		SELECT series AS id, group_concat(book) _books FROM books_series_link
-		GROUP BY series) AS _books USING (id)
-	`); err != nil {
-		return nil, err
-	}
-	if err := db.Select(&m.Tags, `SELECT * FROM tags INNER JOIN (
-		SELECT tag AS id, group_concat(book) _books FROM books_tags_link
-		GROUP BY tag) AS _books USING (id)
-	`); err != nil {
-		return nil, err
+		// Link up Many-to-Many relationships.
+		for _, id := range book.AuthorIDs {
+			author := m.GetAuthor(id)
+			book.Authors = append(book.Authors, author)
+			author.Books = append(author.Books, book)
+		}
+		for _, id := range book.SeriesIDs {
+			series := m.GetSeries(id)
+			book.Series = append(book.Series, series)
+			series.Books = append(series.Books, book)
+		}
+		for _, id := range book.TagIDs {
+			tag := m.GetTag(id)
+			book.Tags = append(book.Tags, tag)
+			tag.Books = append(tag.Books, book)
+		}
 	}
 
 	return &m, nil
