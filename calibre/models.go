@@ -46,8 +46,8 @@ type Book struct {
 	Tags      []*Tag    `json:"-" db:"-"`
 
 	// Many-to-One
-	Data       []*Data           `json:"_data" db:"-"`
-	PluginData []*BookPluginData `json:"_plugin_data" db:"-"`
+	Data       []*Data       `json:"_data" db:"-"`
+	PluginData []*PluginData `json:"_plugin_data" db:"-"`
 }
 
 type Data struct {
@@ -58,7 +58,7 @@ type Data struct {
 	Name             string `json:"name" db:"name"`
 }
 
-type BookPluginData struct {
+type PluginData struct {
 	ID     int    `json:"id" db:"id"`
 	BookID int    `json:"book_id" db:"book"`
 	Name   string `json:"name" db:"name"`
