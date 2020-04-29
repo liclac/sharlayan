@@ -80,6 +80,10 @@ func Read(path string) (*Metadata, error) {
 		return nil, err
 	}
 	for _, book := range m.Books {
+		if err := db.Select(&book.Identifiers,
+			`SELECT * FROM identifiers WHERE book = ?`, book.ID); err != nil {
+			return nil, err
+		}
 		if err := db.Select(&book.Data,
 			`SELECT * FROM data WHERE book = ?`, book.ID); err != nil {
 			return nil, err

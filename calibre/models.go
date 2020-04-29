@@ -8,15 +8,16 @@ import (
 
 // A single book in your Calibre library.
 type Book struct {
-	ID        int        `json:"id" db:"id"`               // Autoincrementing ID.
-	UUID      string     `json:"uuid" db:"uuid"`           // Random UUID (v4).
-	ISBN      string     `json:"isbn" db:"isbn"`           // Deprecated; see Identifiers.
-	LCCN      string     `json:"lccn" db:"lccn"`           // Deprecated; see Identifiers.
-	Flags     int        `json:"flags" db:"flags"`         // Not sure what these do.
-	Timestamp *time.Time `json:"timestamp" db:"timestamp"` // When it was added (editable).
-	Path      string     `json:"path" db:"path"`           // Path to book's data on disk.
-	HasCover  bool       `json:"has_cover" db:"has_cover"` // A file called cover.jpg in Path.
-	Data      []*Data    `json:"data" db:"-"`              // List of files in Path.
+	ID          int          `json:"id" db:"id"`                    // Autoincrementing ID.
+	UUID        string       `json:"uuid" db:"uuid"`                // Random UUID (v4).
+	ISBN        string       `json:"isbn" db:"isbn"`                // Deprecated; see Identifiers.
+	LCCN        string       `json:"lccn" db:"lccn"`                // Deprecated; see Identifiers.
+	Identifiers []Identifier `json:"identifiers" db:"_identifiers"` // ISBNs, ASINs, etc.
+	Flags       int          `json:"flags" db:"flags"`              // Not sure what these do.
+	Timestamp   *time.Time   `json:"timestamp" db:"timestamp"`      // When it was added (editable).
+	Path        string       `json:"path" db:"path"`                // Path to book's data on disk.
+	HasCover    bool         `json:"has_cover" db:"has_cover"`      // A file named cover.jpg in Path.
+	Data        []*Data      `json:"data" db:"-"`                   // List of files in Path.
 
 	Title      string        `json:"title" db:"title"`             // eg. "The Fifth Elephant"
 	Sort       string        `json:"sort" db:"sort"`               // eg. "Fifth Elephant, The"
@@ -47,6 +48,14 @@ type Book struct {
 
 	PluginData   []*PluginData `json:"plugin_data" db:"-"`
 	LastModified time.Time     `json:"last_modified" db:"last_modified"`
+}
+
+// An ISBN, MOBI-ASIN, Google Books ID, etc.
+type Identifier struct {
+	ID     int    `json:"id" db:"id"`
+	BookID int    `json:"book_id" db:"book"`
+	Type   string `json:"type" db:"type"` // eg. "isbn", "mobi-asin", "google".
+	Val    string `json:"val" db:"val"`   // eg. "9781407035208".
 }
 
 // A data file inside a book's data directory (Book.Path).
