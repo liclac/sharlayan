@@ -9,10 +9,10 @@ import (
 	"github.com/liclac/sharlayan/calibre"
 )
 
-var lsCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List database contents",
-	Long:  `List database contents.`,
+var dumpCmd = &cobra.Command{
+	Use:   "dump",
+	Short: "Dump database contents",
+	Long:  `Dump database contents.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		lpath := viper.GetString("library")
 		if lpath == "" {
@@ -28,5 +28,5 @@ var lsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(lsCmd)
+	rootCmd.AddCommand(dumpCmd)
 }
