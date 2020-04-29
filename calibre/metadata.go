@@ -5,6 +5,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	log "github.com/sirupsen/logrus"
+	"jaytaylor.com/html2text"
 )
 
 type Metadata struct {
@@ -97,6 +99,15 @@ func Read(path string) (*Metadata, error) {
         `, book.ID); err != nil {
 			return nil, err
 		}
+
+		// Run CommentRaw through a HTML-to-Markdown filter. If this misbehaves, don't hesitate
+		// to do this in-tree; we're dealing with the output of a WYSIWYG editor with known
+		// behaviour and quirks on one end, and control the rendering on the other end.
+		comment, err := html2text.FromString(string(book.CommentRaw))
+		if err != nil {
+			log.WithError(err).WithField("book_id", book.ID).Warn("Couldn't sanitise comment")
+		}
+		book.Comment = comment
 
 		// Link up Many-to-Many relationships.
 		for _, id := range book.AuthorIDs {

@@ -1,6 +1,7 @@
 package calibre
 
 import (
+	"html/template"
 	"time"
 )
 
@@ -21,7 +22,12 @@ type Book struct {
 	LastModified time.Time  `json:"last_modified" db:"last_modified"`
 
 	// Inlined: comments (id, UNIQUE book, text).
-	Comment string `json:"_comment" db:"_comment"`
+	// The comment is edited with a WYSIWYG editor in the UI, and stored as HTML.
+	CommentRaw template.HTML `json:"_comment_raw" db:"_comment"`
+	// CommentRaw has HTML formatted for the Calibre UI's stylesheets, with formatting
+	// and classes that don't always work for us. So we run it through a HTML-to-Markdown
+	// filter, and then render the Markdown back into HTML.
+	Comment string `json:"_comment" db:"-"`
 
 	// I: ratings (id, UNIQUE rating), _link (id, UNIQUE(book, rating)).
 	// Yes, that's a many-to-many link of score (0-10) proxies to books.

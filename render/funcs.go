@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"strconv"
 
+	"gopkg.in/russross/blackfriday.v2"
+
 	"github.com/liclac/sharlayan/calibre"
 )
 
@@ -18,15 +20,20 @@ func NewFuncs(cfg *Config) Funcs {
 
 func (f Funcs) Map() template.FuncMap {
 	return template.FuncMap{
-		"cfg":     f.Cfg,
-		"link":    f.Link,
-		"linkTo":  f.LinkTo,
-		"linksTo": f.LinksTo,
+		"cfg":      f.Cfg,
+		"markdown": f.Markdown,
+		"link":     f.Link,
+		"linkTo":   f.LinkTo,
+		"linksTo":  f.LinksTo,
 	}
 }
 
 func (f Funcs) Cfg() *Config {
 	return f.Config
+}
+
+func (f Funcs) Markdown(v string) template.HTML {
+	return template.HTML(blackfriday.Run([]byte(v)))
 }
 
 func (f Funcs) Link(path, text string) Link {
