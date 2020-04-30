@@ -1,5 +1,5 @@
 <ul>
 {{range .}}
-<li>{{with linkTo .}}<a href="{{.Href}}">{{.Text}}{{end}}</a>
+<li>{{with linkTo .}}<a href="{{cfg.HTML.Root}}{{.Href}}">{{.Text}}{{end}}</a>
 {{end}}
 </ul>

@@ -7,6 +7,7 @@ type Config struct {
 	// Output formats.
 	HTML struct {
 		Templates string `mapstructure:"templates"`
+		Root      string `mapstructure:"root"`
 		Title     string `mapstructure:"title"`
 	} `mapstructure:"html"`
 

@@ -66,6 +66,7 @@ func init() {
 	buildCmd.Flags().StringP("out", "o", "out", "path to output")
 
 	buildCmd.Flags().String("html.templates", "templates", "path to templates")
+	buildCmd.Flags().String("html.root", "", "public path to library root")
 	buildCmd.Flags().String("html.title", "My Library", "title for rendered site")
 
 	buildCmd.Flags().String("books.path", "/books", "output path to books")
