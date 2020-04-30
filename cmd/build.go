@@ -1,15 +1,16 @@
 package cmd
 
 import (
-	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/liclac/sharlayan/builder"
 	"github.com/liclac/sharlayan/calibre"
-	"github.com/liclac/sharlayan/render"
+	"github.com/liclac/sharlayan/config"
 )
 
 var buildCmd = &cobra.Command{
@@ -17,18 +18,13 @@ var buildCmd = &cobra.Command{
 	Short: "Build a static website",
 	Long:  `Build a static website.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		lpath := viper.GetString("library")
-		if lpath == "" {
-			return fmt.Errorf("-l/--library is required")
-		}
-
-		var cfg render.Config
+		var cfg config.Config
 		if err := viper.Unmarshal(&cfg); err != nil {
 			return err
 		}
 
 		metaStart := time.Now()
-		meta, err := calibre.Read(lpath)
+		meta, err := calibre.Read(cfg.Library)
 		if err != nil {
 			return err
 		}
@@ -36,31 +32,30 @@ var buildCmd = &cobra.Command{
 		log.WithFields(log.Fields{
 			"books": len(meta.Books),
 			"t":     metaTime,
-		}).Debug("Loaded: Calibre database")
+		}).Debug("Loaded: Calibre Metadata")
 
-		rStart := time.Now()
-		r, err := render.New(cfg, meta)
+		bldStart := time.Now()
+		bld, err := builder.New(cfg)
 		if err != nil {
 			return err
 		}
-		rTime := time.Since(rStart)
-		log.WithField("t", rTime).Debug("Loaded: Templates")
+		bldTime := time.Since(bldStart)
+		log.WithField("t", bldTime).Debug("Loaded: Builder")
 
-		rootStart := time.Now()
-		root := render.Root(cfg, meta)
-		rootTime := time.Since(rootStart)
-		log.WithField("t", rootTime).Debug("Loaded: Node Tree")
-
-		renderStart := time.Now()
-		pages, err := r.Render(root)
-		if err != nil {
-			return err
-		}
-		renderTime := time.Since(renderStart)
+		nodesStart := time.Now()
+		nodes := bld.Nodes(meta)
+		nodesTime := time.Since(nodesStart)
 		log.WithFields(log.Fields{
-			"pages": pages,
-			"t":     renderTime,
-		}).Debug("Rendered!")
+			"num": len(nodes),
+			"t":   nodesTime,
+		}).Debug("Loaded: Nodes")
+
+		buildStart := time.Now()
+		if err := bld.Build(afero.NewBasePathFs(afero.NewOsFs(), cfg.Out), nodes); err != nil {
+			return err
+		}
+		buildTime := time.Since(buildStart)
+		log.WithField("t", buildTime).Debug("Rendered!")
 		return err
 	},
 }
@@ -68,13 +63,15 @@ var buildCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(buildCmd)
 
-	buildCmd.Flags().StringP("out", "o", "www", "path to output")
-	buildCmd.Flags().String("templates", "templates", "path to templates")
+	buildCmd.Flags().StringP("out", "o", "out", "path to output")
 
-	buildCmd.Flags().String("title", "My Library", "title for rendered site")
-	buildCmd.Flags().Bool("author.no-index", false, "disable author index")
-	buildCmd.Flags().Bool("series.no-index", false, "disable series index")
-	buildCmd.Flags().Bool("tag.no-index", false, "disable tag index")
+	buildCmd.Flags().String("html.templates", "templates", "path to templates")
+	buildCmd.Flags().String("html.title", "My Library", "title for rendered site")
+
+	buildCmd.Flags().String("books.path", "/books", "output path to books")
+	buildCmd.Flags().String("authors.path", "/authors", "output path to authors")
+	buildCmd.Flags().String("series.path", "/series", "output path to series")
+	buildCmd.Flags().String("tags.path", "/tags", "output path to tags")
 
 	viper.BindPFlags(buildCmd.Flags())
 }

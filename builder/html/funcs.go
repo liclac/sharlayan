@@ -1,20 +1,22 @@
-package render
+package html
 
 import (
 	"fmt"
 	"html/template"
+	"path/filepath"
 	"strconv"
 
 	"gopkg.in/russross/blackfriday.v2"
 
 	"github.com/liclac/sharlayan/calibre"
+	"github.com/liclac/sharlayan/config"
 )
 
 type Funcs struct {
-	Config *Config
+	Config *config.Config
 }
 
-func NewFuncs(cfg *Config) Funcs {
+func NewFuncs(cfg *config.Config) Funcs {
 	return Funcs{Config: cfg}
 }
 
@@ -28,7 +30,7 @@ func (f Funcs) Map() template.FuncMap {
 	}
 }
 
-func (f Funcs) Cfg() *Config {
+func (f Funcs) Cfg() *config.Config {
 	return f.Config
 }
 
@@ -36,8 +38,8 @@ func (f Funcs) Markdown(v string) template.HTML {
 	return template.HTML(blackfriday.Run([]byte(v)))
 }
 
-func (f Funcs) Link(path, text string) Link {
-	return Link{Href: path, Text: text}
+func (f Funcs) Link(text string, parts ...string) Link {
+	return Link{Href: filepath.Join(parts...), Text: text}
 }
 
 func (f Funcs) LinkTo(iv interface{}) (Link, error) {
@@ -45,13 +47,13 @@ func (f Funcs) LinkTo(iv interface{}) (Link, error) {
 	case Link:
 		return v, nil
 	case *calibre.Book:
-		return f.Link("/book/"+strconv.Itoa(v.ID), v.Title), nil
+		return f.Link(v.Title, f.Config.Books.Path, strconv.Itoa(v.ID)), nil
 	case *calibre.Author:
-		return f.Link("/author/"+strconv.Itoa(v.ID), v.Name), nil
+		return f.Link(v.Name, f.Config.Authors.Path, strconv.Itoa(v.ID)), nil
 	case *calibre.Series:
-		return f.Link("/series/"+strconv.Itoa(v.ID), v.Name), nil
+		return f.Link(v.Name, f.Config.Series.Path, strconv.Itoa(v.ID)), nil
 	case *calibre.Tag:
-		return f.Link("/tag/"+strconv.Itoa(v.ID), v.Name), nil
+		return f.Link(v.Name, f.Config.Tags.Path, strconv.Itoa(v.ID)), nil
 	}
 	return Link{}, fmt.Errorf("linkTo supports Link, *Book, *Author, *Series and *Tag, not %T", iv)
 }
