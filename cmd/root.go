@@ -26,9 +26,10 @@ import (
 	"os"
 	"path/filepath"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var rootCmd = &cobra.Command{
@@ -36,10 +37,25 @@ var rootCmd = &cobra.Command{
 	Short: "What's in your library?",
 	Long:  `What's in your library?`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		log.SetLevel(log.InfoLevel)
+		logLevel := zapcore.InfoLevel
 		if viper.GetBool("verbose") {
-			log.SetLevel(log.DebugLevel)
+			logLevel = zapcore.DebugLevel
 		}
+		zap.ReplaceGlobals(zap.New(zapcore.NewCore(
+			zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+				MessageKey:     "M",
+				LevelKey:       "L",
+				TimeKey:        zapcore.OmitKey,
+				NameKey:        "N",
+				CallerKey:      "C",
+				StacktraceKey:  "S",
+				LineEnding:     zapcore.DefaultLineEnding,
+				EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+				EncodeTime:     zapcore.EpochTimeEncoder,
+				EncodeDuration: zapcore.StringDurationEncoder,
+				EncodeCaller:   zapcore.ShortCallerEncoder,
+			}),
+			os.Stderr, logLevel)))
 	},
 }
 

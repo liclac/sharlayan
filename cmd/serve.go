@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 
 	"github.com/liclac/sharlayan/config"
 )
@@ -23,6 +23,8 @@ var serveCmd = &cobra.Command{
 	Short: "Run a server",
 	Long:  `Run a server.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		L := zap.L().Named("serve")
+
 		var cfg config.Config
 		if err := viper.Unmarshal(&cfg); err != nil {
 			return err
@@ -59,7 +61,7 @@ var serveCmd = &cobra.Command{
 		signal.Notify(sigC, syscall.SIGINT, syscall.SIGTERM)
 		select {
 		case sig := <-sigC:
-			log.WithField("signal", sig).Info("Signal received, shutting down...")
+			L.Info("Signal received, shutting down...", zap.Stringer("signal", sig))
 		case err := <-httpErrC:
 			return err
 		}
@@ -71,15 +73,16 @@ var serveCmd = &cobra.Command{
 }
 
 func serveHTTP(ctx context.Context, cfg *config.Config, fs afero.Fs) error {
+	L := zap.L().Named("http")
 	if !cfg.HTTP.Enable {
-		log.Debug("HTTP: Disabled")
+		L.Debug("HTTP: Disabled")
 		return nil
 	}
 	l, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.HTTP.Addr)
 	if err != nil {
 		return fmt.Errorf("http: couldn't listen: %w", err)
 	}
-	log.WithField("addr", l.Addr().String()).Info("HTTP: Listening")
+	L.Info("Listening", zap.Stringer("addr", l.Addr()))
 
 	srv := (&http.Server{
 		Handler:     http.FileServer(afero.NewHttpFs(fs)),
@@ -90,13 +93,13 @@ func serveHTTP(ctx context.Context, cfg *config.Config, fs afero.Fs) error {
 		timeout := 60 * time.Second
 		sctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		log.WithField("timeout", timeout).Info("HTTP: Gracefully shutting down...")
+		L.Info("HTTP: Gracefully shutting down...", zap.Duration("timeout", timeout))
 		if err := srv.Shutdown(sctx); err != nil {
-			log.WithError(err).Warn("HTTP: Couldn't gracefully shut down")
+			L.Warn("HTTP: Couldn't gracefully shut down", zap.Error(err))
 		}
 	}()
 	if err := srv.Serve(l); err != http.ErrServerClosed {
-		return err
+		return fmt.Errorf("http: serving: %w", err)
 	}
 	return nil
 }
