@@ -59,7 +59,17 @@ func init() {
 	}
 
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable debug logging")
+
 	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "path to calibre library")
+
+	rootCmd.PersistentFlags().String("html.templates", "templates", "path to templates")
+	rootCmd.PersistentFlags().String("html.root", "", "public path to library root")
+	rootCmd.PersistentFlags().String("html.title", "My Library", "title for rendered site")
+
+	rootCmd.PersistentFlags().String("books.path", "/books", "output path to books")
+	rootCmd.PersistentFlags().String("authors.path", "/authors", "output path to authors")
+	rootCmd.PersistentFlags().String("series.path", "/series", "output path to series")
+	rootCmd.PersistentFlags().String("tags.path", "/tags", "output path to tags")
 
 	viper.BindPFlags(rootCmd.PersistentFlags())
 	cobra.OnInitialize(initConfig)

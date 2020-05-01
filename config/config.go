@@ -1,8 +1,18 @@
 package config
 
 type Config struct {
-	Out     string `mapstructure:"out"`
 	Library string `mapstructure:"library"`
+
+	// Build command specific.
+	Build struct {
+		Out string `mapstructure:"out"`
+	} `mapstructure:"build"`
+
+	// Serve protocol specific.
+	HTTP struct {
+		Enable bool   `mapstructure:"enable"`
+		Addr   string `mapstructure:"addr"`
+	} `mapstructure:"http"`
 
 	// Output formats.
 	HTML struct {
