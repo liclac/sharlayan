@@ -130,7 +130,7 @@ func (b *Builder) IndexNodes(meta *calibre.Metadata) []tree.Node {
 	return []tree.Node{
 		html.NavPage{
 			Builder:  b.HTML,
-			NodeInfo: tree.NodeInfo{Path: "index.html"},
+			NodeInfo: tree.NodeInfo{Path: "/index.html"},
 			Links: []html.Link{
 				html.Link{Href: b.Cfg.Books.Path, Text: "Books"},
 				html.Link{Href: b.Cfg.Authors.Path, Text: "Authors"},
