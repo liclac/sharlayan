@@ -31,16 +31,8 @@ var serveCmd = &cobra.Command{
 		}
 
 		// Render the whole tree into an in-memory, read-only filesystem.
-		meta, err := loadMeta(cfg)
-		if err != nil {
-			return err
-		}
-		bld, err := createBuilder(cfg)
-		if err != nil {
-			return err
-		}
 		fs := afero.NewMemMapFs()
-		if err := buildToFs(bld, createNodes(bld, meta), fs); err != nil {
+		if err := buildToFs(cfg, fs); err != nil {
 			return err
 		}
 		fs = afero.NewReadOnlyFs(fs)
