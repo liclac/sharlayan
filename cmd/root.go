@@ -75,6 +75,7 @@ func init() {
 	}
 
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable debug logging")
+	rootCmd.PersistentFlags().Bool("debug.trace-fs", false, "log all filesystem calls")
 
 	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "path to calibre library")
 

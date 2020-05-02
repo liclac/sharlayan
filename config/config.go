@@ -3,6 +3,11 @@ package config
 type Config struct {
 	Library string `mapstructure:"library"`
 
+	// Debugging.
+	Debug struct {
+		TraceFS bool `mapstructure:"trace-fs"`
+	} `mapstructure:"debug"`
+
 	// Build command specific.
 	Build struct {
 		Out string `mapstructure:"out"`

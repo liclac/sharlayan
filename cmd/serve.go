@@ -31,7 +31,7 @@ var serveCmd = &cobra.Command{
 		}
 
 		// Render the whole tree into an in-memory, read-only filesystem.
-		fs := afero.NewMemMapFs()
+		fs := traceFS(&cfg, afero.NewMemMapFs())
 		if err := buildToFs(cfg, fs); err != nil {
 			return err
 		}

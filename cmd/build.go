@@ -17,7 +17,8 @@ var buildCmd = &cobra.Command{
 		if err := viper.Unmarshal(&cfg); err != nil {
 			return err
 		}
-		return buildToFs(cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out))
+		return buildToFs(cfg,
+			traceFS(&cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out)))
 	},
 }
 
