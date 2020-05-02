@@ -2,20 +2,17 @@ package cmd
 
 import (
 	"context"
-	"fmt"
-	"net"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
-	"github.com/liclac/sharlayan/config"
+	"github.com/liclac/sharlayan/server"
 )
 
 var serveCmd = &cobra.Command{
@@ -32,63 +29,38 @@ var serveCmd = &cobra.Command{
 		}
 		fs = afero.NewReadOnlyFs(fs)
 
-		// We'll cancel this context if we get a signal.
+		// Make a context, and cancel it if we receive a signal.
 		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		defer cancel() // Prevent context goroutine leak.
 
-		// Spawn a server.
-		httpErrC := make(chan error, 1)
 		go func() {
-			httpErrC <- serveHTTP(ctx, cfg, fs)
-			close(httpErrC)
+			defer cancel()
+
+			sigC := make(chan os.Signal, 1)
+			defer close(sigC)
+			signal.Notify(sigC, syscall.SIGINT, syscall.SIGTERM)
+			defer signal.Stop(sigC)
+
+			select {
+			case sig := <-sigC:
+				L.Info("Signal received, terminating.", zap.Stringer("signal", sig))
+			case <-ctx.Done():
+				L.Debug("Ceasing signal capture, context expired", zap.Error(ctx.Err()))
+			}
 		}()
 
-		// Wait for either a signal or an error.
-		sigC := make(chan os.Signal, 1)
-		signal.Notify(sigC, syscall.SIGINT, syscall.SIGTERM)
-		select {
-		case sig := <-sigC:
-			L.Info("Signal received, shutting down...", zap.Stringer("signal", sig))
-		case err := <-httpErrC:
-			return err
-		}
-		cancel()
-
-		// Wait for any trailing errors.
-		return <-httpErrC
+		// Spawn some servers, wait for them to finish, return their error(s).
+		return collect(server.Serve(ctx, fs,
+			server.HTTP(cfg),
+		))
 	},
 }
 
-func serveHTTP(ctx context.Context, cfg *config.Config, fs afero.Fs) error {
-	L := zap.L().Named("http")
-	if !cfg.HTTP.Enable {
-		L.Debug("HTTP: Disabled")
-		return nil
+func collect(errC <-chan error) (rerr error) {
+	for err := range errC {
+		rerr = multierror.Append(rerr, err)
 	}
-	l, err := (&net.ListenConfig{}).Listen(ctx, "tcp", cfg.HTTP.Addr)
-	if err != nil {
-		return fmt.Errorf("http: couldn't listen: %w", err)
-	}
-	L.Info("Listening", zap.Stringer("addr", l.Addr()))
-
-	srv := (&http.Server{
-		Handler:     http.FileServer(afero.NewHttpFs(fs)),
-		BaseContext: func(net.Listener) context.Context { return ctx },
-	})
-	go func() {
-		<-ctx.Done()
-		timeout := 60 * time.Second
-		sctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		L.Info("HTTP: Gracefully shutting down...", zap.Duration("timeout", timeout))
-		if err := srv.Shutdown(sctx); err != nil {
-			L.Warn("HTTP: Couldn't gracefully shut down", zap.Error(err))
-		}
-	}()
-	if err := srv.Serve(l); err != http.ErrServerClosed {
-		return fmt.Errorf("http: serving: %w", err)
-	}
-	return nil
+	return
 }
 
 func init() {
