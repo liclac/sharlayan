@@ -31,7 +31,7 @@ func traceFS(cfg *config.Config, fs afero.Fs) afero.Fs {
 	return afhack.NewTraceFs(L, fs)
 }
 
-func buildToFs(cfg config.Config, fs afero.Fs) error {
+func buildToFs(cfg *config.Config, fs afero.Fs) error {
 	meta, err := calibre.Read(cfg.Library)
 	if err != nil {
 		return err

@@ -25,13 +25,8 @@ var serveCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		L := zap.L().Named("serve")
 
-		var cfg config.Config
-		if err := viper.Unmarshal(&cfg); err != nil {
-			return err
-		}
-
 		// Render the whole tree into an in-memory, read-only filesystem.
-		fs := traceFS(&cfg, afero.NewMemMapFs())
+		fs := traceFS(cfg, afero.NewMemMapFs())
 		if err := buildToFs(cfg, fs); err != nil {
 			return err
 		}
@@ -44,7 +39,7 @@ var serveCmd = &cobra.Command{
 		// Spawn a server.
 		httpErrC := make(chan error, 1)
 		go func() {
-			httpErrC <- serveHTTP(ctx, &cfg, fs)
+			httpErrC <- serveHTTP(ctx, cfg, fs)
 			close(httpErrC)
 		}()
 

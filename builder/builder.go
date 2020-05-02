@@ -13,11 +13,11 @@ import (
 )
 
 type Builder struct {
-	Cfg  config.Config
+	Cfg  *config.Config
 	HTML *html.Builder
 }
 
-func New(cfg config.Config) (*Builder, error) {
+func New(cfg *config.Config) (*Builder, error) {
 	htmlBuilder, err := html.New(cfg)
 	if err != nil {
 		return nil, err

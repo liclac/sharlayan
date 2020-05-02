@@ -15,13 +15,13 @@ import (
 )
 
 type Builder struct {
-	Config    config.Config
+	Config    *config.Config
 	Meta      *calibre.Metadata
 	Base      *template.Template
 	Templates map[string]*template.Template
 }
 
-func New(cfg config.Config) (*Builder, error) {
+func New(cfg *config.Config) (*Builder, error) {
 	b := &Builder{
 		Config:    cfg,
 		Base:      template.New(""),
@@ -31,7 +31,7 @@ func New(cfg config.Config) (*Builder, error) {
 }
 
 func (b *Builder) loadTemplates() error {
-	b.Base = b.Base.Funcs(NewFuncs(&b.Config).Map())
+	b.Base = b.Base.Funcs(NewFuncs(b.Config).Map())
 	names, err := b.listTemplates()
 	if err != nil {
 		return fmt.Errorf("couldn't list templates: %w", err)

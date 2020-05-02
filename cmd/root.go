@@ -30,15 +30,24 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/liclac/sharlayan/config"
 )
+
+var cfg = &config.Config{}
 
 var rootCmd = &cobra.Command{
 	Use:   "sharlayan",
 	Short: "What's in your library?",
 	Long:  `What's in your library?`,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if err := viper.Unmarshal(cfg); err != nil {
+			return err
+		}
+
+		// Feel free to change the logging setup as you see fit.
 		logLevel := zapcore.InfoLevel
-		if viper.GetBool("verbose") {
+		if cfg.Verbose {
 			logLevel = zapcore.DebugLevel
 		}
 		zap.ReplaceGlobals(zap.New(zapcore.NewCore(
@@ -56,6 +65,7 @@ var rootCmd = &cobra.Command{
 				EncodeCaller:   zapcore.ShortCallerEncoder,
 			}),
 			os.Stderr, logLevel)))
+		return nil
 	},
 }
 

@@ -1,45 +1,51 @@
 package config
 
-type Config struct {
-	Library string `mapstructure:"library"`
+import (
+	"time"
+)
 
-	// Debugging.
-	Debug struct {
-		TraceFS bool `mapstructure:"trace-fs"`
+type Config struct {
+	Library string `mapstructure:"library"` // Path to Calibre library.
+
+	// Debug options.
+	Verbose bool `mapstructure:"verbose"` // Enable debug logging.
+	Debug   struct {
+		TraceFS bool `mapstructure:"trace-fs"` // Log all filesystem operations.
 	} `mapstructure:"debug"`
 
 	// Build command specific.
 	Build struct {
-		Out string `mapstructure:"out"`
+		Out string `mapstructure:"out"` // Output directory.
 	} `mapstructure:"build"`
 
-	// Serve protocol specific.
+	// Serve command protocol specific.
 	HTTP struct {
-		Enable bool   `mapstructure:"enable"`
-		Addr   string `mapstructure:"addr"`
+		Enable bool          `mapstructure:"enable"` // Enable the HTTP server.
+		Addr   string        `mapstructure:"addr"`   // Address to listen on.
+		Grace  time.Duration `mapstructure:"grace"`  // Shutdown grace period.
 	} `mapstructure:"http"`
 
 	// Output formats.
 	HTML struct {
-		Templates string `mapstructure:"templates"`
-		Root      string `mapstructure:"root"`
-		Title     string `mapstructure:"title"`
+		Templates string `mapstructure:"templates"` // Template source directory.
+		Root      string `mapstructure:"root"`      // Prefix from the root of your site.
+		Title     string `mapstructure:"title"`     // Site title.
 	} `mapstructure:"html"`
 
 	// Collections.
 	Books struct {
-		Path string `mapstructure:"path"`
+		Path string `mapstructure:"path"` // Path to the books collection.
 	} `mapstructure:"books"`
 
 	Authors struct {
-		Path string `mapstructure:"path"`
+		Path string `mapstructure:"path"` // Path to the authors collection.
 	} `mapstructure:"authors"`
 
 	Series struct {
-		Path string `mapstructure:"path"`
+		Path string `mapstructure:"path"` // Path to the series collection.
 	} `mapstructure:"series"`
 
 	Tags struct {
-		Path string `mapstructure:"path"`
+		Path string `mapstructure:"path"` // Path to the tags collection.
 	} `mapstructure:"tags"`
 }

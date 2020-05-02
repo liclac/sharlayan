@@ -4,8 +4,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/liclac/sharlayan/config"
 )
 
 var buildCmd = &cobra.Command{
@@ -13,12 +11,7 @@ var buildCmd = &cobra.Command{
 	Short: "Build a static website",
 	Long:  `Build a static website.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var cfg config.Config
-		if err := viper.Unmarshal(&cfg); err != nil {
-			return err
-		}
-		return buildToFs(cfg,
-			traceFS(&cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out)))
+		return buildToFs(cfg, traceFS(cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out)))
 	},
 }
 
