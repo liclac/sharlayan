@@ -179,7 +179,9 @@ func Read(path string) (*Metadata, error) {
 	}
 	L.Debug("Sanitised comments", zap.Int("num", numComments),
 		zap.Duration("t", time.Since(startBookComments)))
-	L.Info("Loaded: Books", zap.Int("num", len(m.Books)), zap.Int("files", numBookData))
+
+	L.Info("Loaded: Books", zap.Int("num", len(m.Books)),
+		zap.Duration("t", time.Since(startBooks)))
 
 	L.Debug("Done", zap.Duration("t", time.Since(start)))
 	return &m, nil
