@@ -6,6 +6,10 @@ import (
 
 type Config struct {
 	Library string `mapstructure:"library"` // Path to Calibre library.
+	Config  struct {
+		File string `mapstructure:"file"` // Path to config.
+		Dir  string `mapstructure:"dir"`  // Path to config directory.
+	} `mapstructure:"config"`
 
 	// Debug options.
 	Verbose bool `mapstructure:"verbose"` // Enable debug logging.
@@ -18,12 +22,24 @@ type Config struct {
 		Out string `mapstructure:"out"` // Output directory.
 	} `mapstructure:"build"`
 
-	// Serve command protocol specific.
+	// Serve command specific.
 	HTTP struct {
 		Enable bool          `mapstructure:"enable"` // Enable the HTTP server.
 		Addr   string        `mapstructure:"addr"`   // Address to listen on.
 		Grace  time.Duration `mapstructure:"grace"`  // Shutdown grace period.
 	} `mapstructure:"http"`
+
+	SSH struct {
+		Enable  bool   `mapstructure:"enable"`   // Enable the SSH server.
+		Addr    string `mapstructure:"addr"`     // Address to listen on.
+		HostKey string `mapstructure:"host-key"` // Path to host private key.
+		Trace   bool   `mapstructure:"trace"`    // Log all SSH operations.
+
+		// SSH subsystems.
+		SFTP struct {
+			Enable bool `mapstructure:"enable"` // Enable the SFTP subsystem.
+		}
+	}
 
 	// Output formats.
 	HTML struct {

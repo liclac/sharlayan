@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/liclac/sharlayan/server"
+	"github.com/liclac/sharlayan/server/ssh"
 )
 
 var serveCmd = &cobra.Command{
@@ -52,6 +53,7 @@ var serveCmd = &cobra.Command{
 		// Spawn some servers, wait for them to finish, return their error(s).
 		return collect(server.Serve(ctx, fs,
 			server.HTTP(cfg),
+			ssh.Server(cfg, ssh.SFTP(cfg)),
 		))
 	},
 }
@@ -68,6 +70,12 @@ func init() {
 
 	serveCmd.Flags().Bool("http.enable", true, "enable the HTTP server")
 	serveCmd.Flags().StringP("http.addr", "a", "127.0.0.1:3300", "address for the HTTP server")
+
+	serveCmd.Flags().Bool("ssh.enable", false, "enable the SSH server")
+	serveCmd.Flags().String("ssh.addr", "127.0.0.1:3322", "address for the SSH server")
+	serveCmd.Flags().Bool("ssh.trace", false, "enable trace logging")
+	serveCmd.Flags().String("ssh.host-key", "", "path to host private key (default \"${config.dir}/host_key.pem\")")
+	serveCmd.Flags().Bool("ssh.sftp.enable", true, "enable the SFTP subsystem")
 
 	viper.BindPFlags(serveCmd.Flags())
 }

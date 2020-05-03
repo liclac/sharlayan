@@ -28,19 +28,11 @@ func HTTP(cfg *config.Config) Server {
 }
 
 func (s httpServer) Run(ctx context.Context, fs afero.Fs) error {
-	// Not using ListenAndServe only so that we can print the real address.
-	l, err := (&net.ListenConfig{}).Listen(ctx, "tcp", s.cfg.HTTP.Addr)
-	if err != nil {
-		return fmt.Errorf("http: couldn't listen: %w", err)
-	}
-	s.L.Info("Listening", zap.Stringer("addr", l.Addr()))
-
+	// HTTP server which gracefully shuts down with the context.
 	srv := (&http.Server{
 		Handler:     http.FileServer(afero.NewHttpFs(fs)),
 		BaseContext: func(net.Listener) context.Context { return ctx },
 	})
-
-	// When the context expires, shut down the server. This also shuts down the listener.
 	go func() {
 		<-ctx.Done()
 
@@ -53,6 +45,14 @@ func (s httpServer) Run(ctx context.Context, fs afero.Fs) error {
 		}
 	}()
 
+	// Not using ListenAndServe only so that we can print the real address.
+	l, err := (&net.ListenConfig{}).Listen(ctx, "tcp", s.cfg.HTTP.Addr)
+	if err != nil {
+		return fmt.Errorf("http: couldn't listen: %w", err)
+	}
+	s.L.Info("Listening", zap.Stringer("addr", l.Addr()))
+
+	// Serve until the goroutine above calls srv.Shutdown().
 	if err := srv.Serve(l); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("http: server error: %w", err)
 	}

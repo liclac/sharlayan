@@ -83,11 +83,18 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	userCfgDir, err := os.UserConfigDir()
+	if err != nil {
+		panic(err)
+	}
+	defaultCfgDir := filepath.Join(userCfgDir, "sharlayan")
+
+	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "path to calibre library")
+	rootCmd.PersistentFlags().StringVarP(&cfg.Config.Dir, "config.dir", "C", defaultCfgDir, "path to config directory")
+	rootCmd.PersistentFlags().StringVarP(&cfg.Config.File, "config.file", "c", "", "path to config file (default ${config.dir}/config.toml)")
 
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable debug logging")
 	rootCmd.PersistentFlags().Bool("debug.trace-fs", false, "log all filesystem calls")
-
-	rootCmd.PersistentFlags().StringP("library", "l", filepath.Join(home, "Calibre Library"), "path to calibre library")
 
 	rootCmd.PersistentFlags().String("html.templates", "templates", "path to templates")
 	rootCmd.PersistentFlags().String("html.root", "", "public path to library root")
@@ -103,6 +110,13 @@ func init() {
 }
 
 func initConfig() {
+	if cfgFile := cfg.Config.File; cfgFile != "" {
+		viper.SetConfigFile(cfg.Config.File)
+	} else {
+		viper.AddConfigPath(cfg.Config.Dir)
+		viper.SetConfigName("config")
+		viper.SetConfigType("toml")
+	}
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		if _, isNotFound := err.(viper.ConfigFileNotFoundError); !isNotFound {
