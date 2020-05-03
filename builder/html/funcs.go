@@ -63,13 +63,13 @@ func (f *Funcs) LinkTo(iv interface{}) (Link, error) {
 	case tree.NodeInfo:
 		return Link{f, false, []tree.NodeInfo{v}}, nil
 	case *calibre.Book:
-		return Link{f, true, []tree.NodeInfo{tree.BooksDirInfo, tree.BookInfo(v)}}, nil
+		return Link{f, true, []tree.NodeInfo{tree.BookDirInfo, tree.BookInfo(v)}}, nil
 	case *calibre.Author:
-		return Link{f, true, []tree.NodeInfo{tree.AuthorsDirInfo, tree.AuthorInfo(v)}}, nil
+		return Link{f, true, []tree.NodeInfo{tree.AuthorDirInfo, tree.AuthorInfo(v)}}, nil
 	case *calibre.Series:
 		return Link{f, true, []tree.NodeInfo{tree.SeriesDirInfo, tree.SeriesInfo(v)}}, nil
 	case *calibre.Tag:
-		return Link{f, true, []tree.NodeInfo{tree.TagsDirInfo, tree.TagInfo(v)}}, nil
+		return Link{f, true, []tree.NodeInfo{tree.TagDirInfo, tree.TagInfo(v)}}, nil
 	}
 	return Link{}, fmt.Errorf("linkTo supports Link, *Book, *Author, *Series and *Tag, not %T", iv)
 }

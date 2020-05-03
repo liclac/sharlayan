@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	BooksDirInfo   = NodeInfo{ID: "books", Name: "Books"}
-	AuthorsDirInfo = NodeInfo{ID: "authors", Name: "Authors"}
-	SeriesDirInfo  = NodeInfo{ID: "series", Name: "Series"}
-	TagsDirInfo    = NodeInfo{ID: "tags", Name: "Tags"}
+	BookDirInfo   = NodeInfo{ID: "books", Name: "Books"}
+	AuthorDirInfo = NodeInfo{ID: "authors", Name: "Authors"}
+	SeriesDirInfo = NodeInfo{ID: "series", Name: "Series"}
+	TagDirInfo    = NodeInfo{ID: "tags", Name: "Tags"}
 )
 
 func BookInfo(b *calibre.Book) NodeInfo     { return NodeInfo{ID: strconv.Itoa(b.ID), Name: b.Title} }
