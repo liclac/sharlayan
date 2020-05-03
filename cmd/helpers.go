@@ -8,8 +8,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/liclac/sharlayan/afhack"
-	"github.com/liclac/sharlayan/builder"
-	"github.com/liclac/sharlayan/calibre"
 	"github.com/liclac/sharlayan/config"
 )
 
@@ -29,16 +27,4 @@ func traceFS(cfg *config.Config, fs afero.Fs) afero.Fs {
 	L := zap.L().Named("fs")
 	L.Debug("FS Tracing enabled")
 	return afhack.NewTraceFs(L, fs)
-}
-
-func buildToFs(cfg *config.Config, fs afero.Fs) error {
-	meta, err := calibre.Read(cfg.Library)
-	if err != nil {
-		return err
-	}
-	bld, err := builder.New(cfg)
-	if err != nil {
-		return err
-	}
-	return bld.Build(fs, bld.Nodes(meta))
 }

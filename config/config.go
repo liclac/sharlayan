@@ -47,21 +47,4 @@ type Config struct {
 		Root      string `mapstructure:"root"`      // Prefix from the root of your site.
 		Title     string `mapstructure:"title"`     // Site title.
 	} `mapstructure:"html"`
-
-	// Collections.
-	Books struct {
-		Path string `mapstructure:"path"` // Path to the books collection.
-	} `mapstructure:"books"`
-
-	Authors struct {
-		Path string `mapstructure:"path"` // Path to the authors collection.
-	} `mapstructure:"authors"`
-
-	Series struct {
-		Path string `mapstructure:"path"` // Path to the series collection.
-	} `mapstructure:"series"`
-
-	Tags struct {
-		Path string `mapstructure:"path"` // Path to the tags collection.
-	} `mapstructure:"tags"`
 }

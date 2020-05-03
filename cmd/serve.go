@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,9 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
+	"github.com/liclac/sharlayan/builder"
+	"github.com/liclac/sharlayan/builder/tree"
+	"github.com/liclac/sharlayan/calibre"
 	"github.com/liclac/sharlayan/server"
 	"github.com/liclac/sharlayan/server/ssh"
 )
@@ -23,9 +27,21 @@ var serveCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		L := zap.L().Named("serve")
 
-		// Render the whole tree into an in-memory, read-only filesystem.
+		// Render a ByName tree into an in-memory, read-only filesystem.
+		meta, err := calibre.Read(cfg.Library)
+		if err != nil {
+			return err
+		}
+		bld, err := builder.New(cfg)
+		if err != nil {
+			return err
+		}
+		root := builder.Root(bld, meta)
+		if root == nil {
+			return fmt.Errorf("root == nil, nothing to render")
+		}
 		fs := traceFS(cfg, afero.NewMemMapFs())
-		if err := buildToFs(cfg, fs); err != nil {
+		if err := root.Render(fs, tree.ByID, "/"); err != nil {
 			return err
 		}
 		fs = afero.NewReadOnlyFs(fs)

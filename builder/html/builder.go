@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/afero"
 
+	"github.com/liclac/sharlayan/builder/tree"
 	"github.com/liclac/sharlayan/calibre"
 	"github.com/liclac/sharlayan/config"
 )
@@ -19,6 +20,7 @@ type Builder struct {
 	Meta      *calibre.Metadata
 	Base      *template.Template
 	Templates map[string]*template.Template
+	Funcs     Funcs
 }
 
 func New(cfg *config.Config) (*Builder, error) {
@@ -26,12 +28,13 @@ func New(cfg *config.Config) (*Builder, error) {
 		Config:    cfg,
 		Base:      template.New(""),
 		Templates: make(map[string]*template.Template),
+		Funcs:     NewFuncs(cfg),
 	}
 	return b, b.loadTemplates()
 }
 
 func (b *Builder) loadTemplates() error {
-	b.Base = b.Base.Funcs(NewFuncs(b.Config).Map())
+	b.Base = b.Base.Funcs(b.Funcs.Map())
 	names, err := b.listTemplates()
 	if err != nil {
 		return fmt.Errorf("couldn't list templates: %w", err)
@@ -94,17 +97,18 @@ func (b *Builder) listTemplates() ([]string, error) {
 	return names, err
 }
 
-func (b *Builder) Render(fs afero.Fs, path, name string, tctx interface{}) error {
-	if err := fs.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return err
-	}
+func (b *Builder) Render(fs afero.Fs, ns tree.NamingScheme, path, name string, v interface{}) error {
+	b.Funcs.Naming = ns
 	f, err := fs.Create(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("html: creating output (%s): %w", path, err)
 	}
 	defer f.Close()
 	if t, ok := b.Templates[name]; ok {
-		return t.ExecuteTemplate(f, name, tctx)
+		if err := t.ExecuteTemplate(f, name, v); err != nil {
+			return fmt.Errorf("html: executing template (%s): %w", name, err)
+		}
+		return nil
 	}
 	return fmt.Errorf("no such template: %s", name)
 }

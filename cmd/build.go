@@ -1,9 +1,15 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/liclac/sharlayan/builder"
+	"github.com/liclac/sharlayan/builder/tree"
+	"github.com/liclac/sharlayan/calibre"
 )
 
 var buildCmd = &cobra.Command{
@@ -11,7 +17,23 @@ var buildCmd = &cobra.Command{
 	Short: "Build a static website",
 	Long:  `Build a static website.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return buildToFs(cfg, traceFS(cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out)))
+		meta, err := calibre.Read(cfg.Library)
+		if err != nil {
+			return err
+		}
+		bld, err := builder.New(cfg)
+		if err != nil {
+			return err
+		}
+		root := builder.Root(bld, meta)
+		if root == nil {
+			return fmt.Errorf("root == nil, nothing to render")
+		}
+		fs := traceFS(cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out))
+		if err := root.Render(fs, tree.ByID, "/_id/"); err != nil {
+			return err
+		}
+		return nil
 	},
 }
 
