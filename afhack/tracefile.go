@@ -39,7 +39,7 @@ func (f *TraceFile) Close() error {
 func (f *TraceFile) Read(p []byte) (int, error) {
 	n, err := f.F.Read(p)
 	if le := f.l.Check(debugOrWarn(err), ""); le != nil {
-		le.Message = fmt.Sprintf("Read(%q) %d", p, n)
+		le.Message = fmt.Sprintf("Read([%d]byte{}) %d", len(p), n)
 		le.Write(zap.Error(err))
 	}
 	return n, err
@@ -48,7 +48,7 @@ func (f *TraceFile) Read(p []byte) (int, error) {
 func (f *TraceFile) ReadAt(p []byte, off int64) (int, error) {
 	n, err := f.F.ReadAt(p, off)
 	if le := f.l.Check(debugOrWarn(err), ""); le != nil {
-		le.Message = fmt.Sprintf("ReadAt(%q, %d) %d", p, off, n)
+		le.Message = fmt.Sprintf("ReadAt([%d]byte{}, %d) %d", len(p), off, n)
 		le.Write(zap.Error(err))
 	}
 	return n, err
