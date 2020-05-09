@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"gopkg.in/russross/blackfriday.v2"
+	"github.com/russross/blackfriday/v2"
 
 	"github.com/liclac/sharlayan/builder/tree"
 	"github.com/liclac/sharlayan/calibre"
