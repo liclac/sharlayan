@@ -11,6 +11,7 @@ import (
 )
 
 type Metadata struct {
+	Path    string    `json:"path"`
 	Tags    []*Tag    `json:"tags"`
 	Series  []*Series `json:"series"`
 	Authors []*Author `json:"authors"`
@@ -20,6 +21,9 @@ type Metadata struct {
 func Read(path string) (*Metadata, error) {
 	start := time.Now()
 	L := zap.L().Named("calibre")
+
+	// Make sure there's a trailing slash on the path; fixes symlinks.
+	path = filepath.Clean(path) + "/"
 	L.Info("Reading library...", zap.String("path", path))
 
 	dbpath := filepath.Join(path, "metadata.db")
@@ -30,7 +34,7 @@ func Read(path string) (*Metadata, error) {
 		return nil, err
 	}
 
-	m := Metadata{}
+	m := Metadata{Path: path}
 
 	L.Debug("Loading: Authors...")
 	startAuthors := time.Now()
