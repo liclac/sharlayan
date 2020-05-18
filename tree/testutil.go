@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,4 +66,18 @@ func fsDump_(fs billy.Filesystem, path string) (fsDumpNode, error) {
 	}
 
 	return node, nil
+}
+
+func renderDump(t *testing.T, node Node) fsDumpNode {
+	n, err := renderDump_(node)
+	require.NoError(t, err)
+	return n
+}
+
+func renderDump_(node Node) (fsDumpNode, error) {
+	fs := memfs.New()
+	if err := Render(fs, "/", node); err != nil {
+		return fsDumpNode{}, err
+	}
+	return fsDump_(fs, filepath.Join("/", node.Info().Filename))
 }
