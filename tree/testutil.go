@@ -19,14 +19,14 @@ type fsDumpNode struct {
 	Nodes    []fsDumpNode
 }
 
-func fsDumpT(t *testing.T, fs billy.Filesystem, path string) fsDumpNode {
-	node, err := fsDump(fs, path)
+func fsDump(t *testing.T, fs billy.Filesystem, path string) fsDumpNode {
+	node, err := fsDump_(fs, path)
 	require.NoError(t, err)
 	return node
 }
 
 // Dumps a filesystem into a tree of fsDumpNodes.
-func fsDump(fs billy.Filesystem, path string) (fsDumpNode, error) {
+func fsDump_(fs billy.Filesystem, path string) (fsDumpNode, error) {
 	stat, err := fs.Stat(path)
 	if err != nil {
 		return fsDumpNode{}, fmt.Errorf("stat: %s: %w", path, err)
@@ -42,7 +42,7 @@ func fsDump(fs billy.Filesystem, path string) (fsDumpNode, error) {
 			return node, fmt.Errorf("readdir: %s: %w", path, err)
 		}
 		for _, info := range childInfos {
-			child, err := fsDump(fs, filepath.Join(path, info.Name()))
+			child, err := fsDump_(fs, filepath.Join(path, info.Name()))
 			if err != nil {
 				return node, err
 			}

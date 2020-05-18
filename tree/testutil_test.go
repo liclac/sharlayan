@@ -39,5 +39,5 @@ func Test_fsDump(t *testing.T) {
 				fsDumpNode{Filename: "e", Mode: 0755 | os.ModeDir},
 			}},
 		},
-	}, fsDumpT(t, fs, "/"))
+	}, fsDump(t, fs, "/"))
 }

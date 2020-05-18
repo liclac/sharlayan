@@ -31,7 +31,7 @@ func TestTreeSingleNode(t *testing.T) {
 		fsDumpNode{Filename: "prefix", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
 			fsDumpNode{Filename: "test.txt", Mode: 0644, Data: []byte("abc123")},
 		}},
-	}}, fsDumpT(t, fs, "/"))
+	}}, fsDump(t, fs, "/"))
 }
 
 // Build a tree that requires correctly recursing.
@@ -66,5 +66,5 @@ func TestTreeDirs(t *testing.T) {
 			}},
 			fsDumpNode{Filename: "test1.txt", Mode: 0644, Data: []byte("abc123")},
 		}},
-	}}, fsDumpT(t, fs, "/"))
+	}}, fsDump(t, fs, "/"))
 }
