@@ -31,6 +31,9 @@ type NodeInfo struct {
 	LinkID string
 }
 
+// Automatically implement Node.Info() on node types that embed a NodeInfo.
+func (i NodeInfo) Info() NodeInfo { return i }
+
 // A DirNode represents a directory of other nodes. Implements NodeCollection.
 type DirNode struct {
 	NodeInfo
@@ -47,7 +50,6 @@ func DirID(filename, linkID string, nodes ...Node) DirNode {
 	return DirNode{NodeInfo{Filename: filename, LinkID: linkID}, nodes}
 }
 
-func (n DirNode) Info() NodeInfo   { return n.NodeInfo }
 func (n DirNode) Children() []Node { return n.Nodes }
 
 func (n DirNode) Render(t Tree, path string) error {
@@ -65,8 +67,6 @@ type ConstNode struct {
 func String(filename string, s string) ConstNode {
 	return ConstNode{NodeInfo{Filename: filename}, 0644, []byte(s)}
 }
-
-func (n ConstNode) Info() NodeInfo { return n.NodeInfo }
 
 func (n ConstNode) Render(t Tree, path string) error {
 	return util.WriteFile(t, path, n.Data, n.Mode)
