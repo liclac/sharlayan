@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-git/go-billy/v5/util"
 )
@@ -49,8 +50,8 @@ func Alias(alias string) NodeInfoOpt {
 }
 
 // NodeInfoOpt that sets NodeInfo.LinkID.
-func LinkID(id string) NodeInfoOpt {
-	return func(info *NodeInfo) { info.LinkID = id }
+func LinkID(id ...string) NodeInfoOpt {
+	return func(info *NodeInfo) { info.LinkID = strings.Join(id, ":") }
 }
 
 // Automatically implement Node.Info() on node types that embed a NodeInfo.
@@ -103,8 +104,8 @@ type SymlinkNode struct {
 }
 
 // Returns a SymlinkNode that links to the given LinkID.
-func Symlink(info NodeInfo, targetLinkID string) SymlinkNode {
-	return SymlinkNode{info, targetLinkID}
+func Symlink(info NodeInfo, targetLinkID ...string) SymlinkNode {
+	return SymlinkNode{info, strings.Join(targetLinkID, ":")}
 }
 
 func (n SymlinkNode) Render(t Tree, self *NodeWrapper, path string) error {
