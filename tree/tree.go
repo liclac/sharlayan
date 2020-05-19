@@ -11,23 +11,28 @@ import (
 type NodeWrapper struct {
 	Node
 	NodeInfo
+	Filename string         // Info.Filename, or Info.Alias if set and useAlias is true.
 	Path     string         // Full path, relative to Tree.Path.
 	Children []*NodeWrapper // Child nodes, if any.
 }
 
-func WrapNode(basePath string, n Node) *NodeWrapper {
+func WrapNode(useAlias bool, basePath string, n Node) *NodeWrapper {
 	if n == nil {
 		return nil
 	}
 
 	w := &NodeWrapper{Node: n, NodeInfo: n.Info()}
+	w.Filename = w.NodeInfo.Filename
+	if useAlias && w.NodeInfo.Alias != "" {
+		w.Filename = w.NodeInfo.Alias
+	}
 	w.Path = filepath.Join(basePath, w.Filename)
 
 	if n, ok := n.(NodeCollection); ok {
 		children := n.Children()
 		w.Children = make([]*NodeWrapper, len(children))
 		for i, child := range children {
-			w.Children[i] = WrapNode(w.Path, child)
+			w.Children[i] = WrapNode(useAlias, w.Path, child)
 		}
 	}
 
@@ -45,11 +50,11 @@ type Tree struct {
 }
 
 // Creates a new Tree, for rendering the root node to a given path in the passed filesystem.
-func New(fs billy.Filesystem, path string, root Node) (*Tree, error) {
+func New(fs billy.Filesystem, useAlias bool, path string, root Node) (*Tree, error) {
 	t := &Tree{
 		Filesystem: fs,
 		Path:       path,
-		Root:       WrapNode("/", root),
+		Root:       WrapNode(useAlias, "/", root),
 		ByPath:     map[string]*NodeWrapper{},
 		ByLinkID:   map[string]*NodeWrapper{},
 	}
@@ -57,8 +62,8 @@ func New(fs billy.Filesystem, path string, root Node) (*Tree, error) {
 }
 
 // Shorthand for creating a Tree and calling Render() on it.
-func Render(fs billy.Filesystem, path string, root Node) error {
-	t, err := New(fs, path, root)
+func Render(fs billy.Filesystem, useAlias bool, path string, root Node) error {
+	t, err := New(fs, useAlias, path, root)
 	if err != nil {
 		return err
 	}

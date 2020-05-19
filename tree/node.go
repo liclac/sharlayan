@@ -24,6 +24,7 @@ type NodeCollection interface {
 // NodeInfo represents basic information about a node.
 type NodeInfo struct {
 	Filename string // Required: Filename relative to parent node.
+	Alias    string // Optional: Display name used in listings.
 
 	// Optional: Unique ID for the node. The LinkID can be resolved to a path in a Tree.
 	// This is used for two things: declaring symlinks that are resolved at render time,
@@ -40,6 +41,11 @@ func Named(filename string, opts ...NodeInfoOpt) NodeInfo {
 		opt(&info)
 	}
 	return info
+}
+
+// NodeInfoOpt that sets NodeInfo.Alias.
+func Alias(alias string) NodeInfoOpt {
+	return func(info *NodeInfo) { info.Alias = alias }
 }
 
 // NodeInfoOpt that sets NodeInfo.LinkID.

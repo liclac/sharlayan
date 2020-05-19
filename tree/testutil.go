@@ -82,7 +82,7 @@ func renderDump(t *testing.T, node Node) fsDumpNode {
 
 func renderDump_(node Node) (fsDumpNode, error) {
 	fs := memfs.New()
-	if err := Render(fs, "/", node); err != nil {
+	if err := Render(fs, false, "/", node); err != nil {
 		return fsDumpNode{}, err
 	}
 	return fsDump_(fs, filepath.Join("/", node.Info().Filename))
