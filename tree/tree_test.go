@@ -34,6 +34,23 @@ func TestTreeSingleNode(t *testing.T) {
 	}}, fsDump(t, fs, "/"))
 }
 
+// Building a tree with a nil root node should render an empty directory.
+func TestTreeNilRoot(t *testing.T) {
+	fs := memfs.New()
+	tree, err := New(fs, "/prefix", nil)
+	require.NoError(t, err)
+	assert.Equal(t, &Tree{
+		Filesystem: fs,
+		Path:       "/prefix",
+		ByPath:     map[string]*NodeWrapper{},
+		ByLinkID:   map[string]*NodeWrapper{},
+	}, tree)
+	require.NoError(t, tree.Render())
+	assert.Equal(t, fsDumpNode{Filename: "/", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
+		fsDumpNode{Filename: "prefix", Mode: 0755 | os.ModeDir},
+	}}, fsDump(t, fs, "/"))
+}
+
 // Build a tree that requires correctly recursing.
 func TestTreeDirs(t *testing.T) {
 	fs := memfs.New()

@@ -16,6 +16,10 @@ type NodeWrapper struct {
 }
 
 func WrapNode(basePath string, n Node) *NodeWrapper {
+	if n == nil {
+		return nil
+	}
+
 	w := &NodeWrapper{Node: n, NodeInfo: n.Info()}
 	w.Path = filepath.Join(basePath, w.Filename)
 
@@ -63,6 +67,10 @@ func Render(fs billy.Filesystem, path string, root Node) error {
 
 // Recursive function for walking a NodeWrapper when initialising a Tree.
 func (t *Tree) walkNode(w *NodeWrapper) error {
+	if w == nil {
+		return nil
+	}
+
 	t.ByPath[w.Path] = w
 
 	if w.LinkID != "" {
@@ -74,6 +82,9 @@ func (t *Tree) walkNode(w *NodeWrapper) error {
 	}
 
 	for i, cw := range w.Children {
+		if cw == nil {
+			continue
+		}
 		if cw.Filename == "" {
 			return fmt.Errorf("child %d has no Filename: %s", i, w.Path)
 		}
@@ -93,6 +104,9 @@ func (t Tree) Render() error {
 }
 
 func (t Tree) renderNode(w *NodeWrapper) error {
+	if w == nil {
+		return nil
+	}
 	if err := w.Render(t, filepath.Join(t.Path, w.Path)); err != nil {
 		return fmt.Errorf("rendering %s: %w", w.Path, err)
 	}

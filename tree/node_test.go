@@ -19,6 +19,11 @@ func TestDirNode(t *testing.T) {
 			fsDumpNode{Filename: "dir", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
 				fsDumpNode{Filename: "test.txt", Mode: 0644, Data: []byte("abc123")},
 			}}, renderDump(t, Dir("dir", String("test.txt", "abc123"))))
+
+		t.Run("nil", func(t *testing.T) {
+			assert.Equal(t, fsDumpNode{Filename: "dir", Mode: 0755 | os.ModeDir},
+				renderDump(t, Dir("dir", nil)))
+		})
 	})
 
 	t.Run("Two Files", func(t *testing.T) {
