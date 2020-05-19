@@ -20,6 +20,7 @@ func Test_fsDump(t *testing.T) {
 	require.NoError(t, fs.MkdirAll("/a/b/d", 0755))
 	require.NoError(t, util.WriteFile(fs, "/a/b/d/file4.txt", []byte("test 4"), 0644))
 	require.NoError(t, fs.MkdirAll("/a/e", 0755))
+	require.NoError(t, fs.Symlink("../d/file4.txt", "/a/c/file4.txt"))
 
 	assert.Equal(t, fsDumpNode{
 		Filename: "/",
@@ -28,13 +29,14 @@ func Test_fsDump(t *testing.T) {
 			fsDumpNode{Filename: "a", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
 				fsDumpNode{Filename: "b", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
 					fsDumpNode{Filename: "d", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
-						fsDumpNode{Filename: "file4.txt", Mode: 0644, Data: []byte("test 4")},
+						fsDumpNode{Filename: "file4.txt", Mode: 0644, Data: "test 4"},
 					}},
-					fsDumpNode{Filename: "file1.txt", Mode: 0644, Data: []byte("test 1")},
-					fsDumpNode{Filename: "file2.txt", Mode: 0644, Data: []byte("test 2")},
+					fsDumpNode{Filename: "file1.txt", Mode: 0644, Data: "test 1"},
+					fsDumpNode{Filename: "file2.txt", Mode: 0644, Data: "test 2"},
 				}},
 				fsDumpNode{Filename: "c", Mode: 0755 | os.ModeDir, Nodes: []fsDumpNode{
-					fsDumpNode{Filename: "file3.txt", Mode: 0644, Data: []byte("test 3")},
+					fsDumpNode{Filename: "file3.txt", Mode: 0644, Data: "test 3"},
+					fsDumpNode{Filename: "file4.txt", Mode: 0777 | os.ModeSymlink, Data: "../d/file4.txt"},
 				}},
 				fsDumpNode{Filename: "e", Mode: 0755 | os.ModeDir},
 			}},

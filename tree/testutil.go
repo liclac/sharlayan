@@ -16,7 +16,7 @@ import (
 type fsDumpNode struct {
 	Filename string
 	Mode     os.FileMode
-	Data     []byte
+	Data     string
 	Nodes    []fsDumpNode
 }
 
@@ -28,7 +28,7 @@ func fsDump(t *testing.T, fs billy.Filesystem, path string) fsDumpNode {
 
 // Dumps a filesystem into a tree of fsDumpNodes.
 func fsDump_(fs billy.Filesystem, path string) (fsDumpNode, error) {
-	stat, err := fs.Stat(path)
+	stat, err := fs.Lstat(path)
 	if err != nil {
 		return fsDumpNode{}, fmt.Errorf("stat: %s: %w", path, err)
 	}
@@ -52,6 +52,12 @@ func fsDump_(fs billy.Filesystem, path string) (fsDumpNode, error) {
 		sort.Slice(node.Nodes, func(i, j int) bool {
 			return node.Nodes[i].Filename < node.Nodes[j].Filename
 		})
+	} else if stat.Mode()&os.ModeSymlink != 0 {
+		target, err := fs.Readlink(path)
+		if err != nil {
+			return node, err
+		}
+		node.Data = target
 	} else {
 		f, err := fs.Open(path)
 		if err != nil {
@@ -62,7 +68,7 @@ func fsDump_(fs billy.Filesystem, path string) (fsDumpNode, error) {
 		if err != nil {
 			return node, fmt.Errorf("read: %s: %w", path, err)
 		}
-		node.Data = data
+		node.Data = string(data)
 	}
 
 	return node, nil

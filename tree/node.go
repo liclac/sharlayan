@@ -29,6 +29,22 @@ type NodeInfo struct {
 	LinkID string
 }
 
+type NodeInfoOpt func(info *NodeInfo)
+
+// Functional builder for NodeInfo structs, see NodeInfoOpt.
+func Named(filename string, opts ...NodeInfoOpt) NodeInfo {
+	info := NodeInfo{Filename: filename}
+	for _, opt := range opts {
+		opt(&info)
+	}
+	return info
+}
+
+// NodeInfoOpt that sets NodeInfo.LinkID.
+func LinkID(id string) NodeInfoOpt {
+	return func(info *NodeInfo) { info.LinkID = id }
+}
+
 // Automatically implement Node.Info() on node types that embed a NodeInfo.
 func (i NodeInfo) Info() NodeInfo { return i }
 
@@ -41,13 +57,8 @@ type DirNode struct {
 }
 
 // Returns a DirNode containing the given nodes.
-func Dir(filename string, nodes ...Node) DirNode {
-	return DirID(filename, "", nodes...)
-}
-
-// Returns a DirNode with a LinkID, containing the given nodes.
-func DirID(filename, linkID string, nodes ...Node) DirNode {
-	return DirNode{NodeInfo{Filename: filename, LinkID: linkID}, nodes}
+func Dir(info NodeInfo, nodes ...Node) DirNode {
+	return DirNode{info, nodes}
 }
 
 func (n DirNode) Children() []Node { return n.Nodes }
@@ -66,8 +77,8 @@ type ConstNode struct {
 }
 
 // Returns a ConstNode that writes a string to a file.
-func String(filename string, s string) ConstNode {
-	return ConstNode{NodeInfo{Filename: filename}, 0644, []byte(s)}
+func String(info NodeInfo, s string) ConstNode {
+	return ConstNode{info, 0644, []byte(s)}
 }
 
 func (n ConstNode) Render(t Tree, self *NodeWrapper, path string) error {
