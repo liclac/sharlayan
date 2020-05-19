@@ -1,7 +1,9 @@
 package tree
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/go-git/go-billy/v5/util"
 )
@@ -83,4 +85,31 @@ func String(info NodeInfo, s string) ConstNode {
 
 func (n ConstNode) Render(t Tree, self *NodeWrapper, path string) error {
 	return util.WriteFile(t, path, n.Data, n.Mode)
+}
+
+var _ Node = SymlinkNode{}
+
+// A SymlinkNode creates a symlink to a target identified by its LinkID.
+// The resulting link will use the shortest possible relative path.
+type SymlinkNode struct {
+	NodeInfo
+	TargetLinkID string
+}
+
+// Returns a SymlinkNode that links to the given LinkID.
+func Symlink(info NodeInfo, targetLinkID string) SymlinkNode {
+	return SymlinkNode{info, targetLinkID}
+}
+
+func (n SymlinkNode) Render(t Tree, self *NodeWrapper, path string) error {
+	dst, dstOK := t.ByLinkID[n.TargetLinkID]
+	if !dstOK {
+		return fmt.Errorf("unknown link ID: %s", n.TargetLinkID)
+	}
+	relPath, err := filepath.Rel(filepath.Dir(self.Path), dst.Path)
+	if err != nil {
+		return fmt.Errorf("couldn't find relative path from %s [link] to %s [linkID='%s']: %w",
+			self.Path, dst.Path, n.TargetLinkID, err)
+	}
+	return t.Symlink(relPath, path)
 }
