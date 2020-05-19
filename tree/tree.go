@@ -107,7 +107,7 @@ func (t Tree) renderNode(w *NodeWrapper) error {
 	if w == nil {
 		return nil
 	}
-	if err := w.Render(t, filepath.Join(t.Path, w.Path)); err != nil {
+	if err := w.Render(t, w, filepath.Join(t.Path, w.Path)); err != nil {
 		return fmt.Errorf("rendering %s: %w", w.Path, err)
 	}
 	for _, cw := range w.Children {

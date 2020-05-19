@@ -6,12 +6,10 @@ import (
 	"github.com/go-git/go-billy/v5/util"
 )
 
-var _ NodeCollection = DirNode{}
-
 // A Node is the basic building block of a Tree.
 type Node interface {
 	Info() NodeInfo
-	Render(t Tree, path string) error
+	Render(t Tree, self *NodeWrapper, path string) error
 }
 
 // A NodeCollection is a node that contains other nodes, eg. a directory.
@@ -34,6 +32,8 @@ type NodeInfo struct {
 // Automatically implement Node.Info() on node types that embed a NodeInfo.
 func (i NodeInfo) Info() NodeInfo { return i }
 
+var _ NodeCollection = DirNode{}
+
 // A DirNode represents a directory of other nodes. Implements NodeCollection.
 type DirNode struct {
 	NodeInfo
@@ -52,9 +52,11 @@ func DirID(filename, linkID string, nodes ...Node) DirNode {
 
 func (n DirNode) Children() []Node { return n.Nodes }
 
-func (n DirNode) Render(t Tree, path string) error {
+func (n DirNode) Render(t Tree, self *NodeWrapper, path string) error {
 	return t.MkdirAll(path, 0755)
 }
+
+var _ Node = ConstNode{}
 
 // A ConstNode writes some static data to a file.
 type ConstNode struct {
@@ -68,6 +70,6 @@ func String(filename string, s string) ConstNode {
 	return ConstNode{NodeInfo{Filename: filename}, 0644, []byte(s)}
 }
 
-func (n ConstNode) Render(t Tree, path string) error {
+func (n ConstNode) Render(t Tree, self *NodeWrapper, path string) error {
 	return util.WriteFile(t, path, n.Data, n.Mode)
 }
