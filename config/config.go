@@ -19,7 +19,15 @@ type Config struct {
 
 	// Build command specific.
 	Build struct {
-		Out string `mapstructure:"out"` // Output directory.
+		Out    string `mapstructure:"out"` // Output directory.
+		ByName struct {
+			Enable bool   `mapstructure:"enable"` // Enable human readable names.
+			Prefix string `mapstructure:"prefix"` // Prefix in the output tree.
+		} `mapstructure:"by-name"`
+		ByID struct {
+			Enable bool   `mapstructure:"enable"` // Enable stable ID paths.
+			Prefix string `mapstructure:"prefix"` // Prefix in the output tree.
+		} `mapstructure:"by-id"`
 	} `mapstructure:"build"`
 
 	// Serve command specific.
