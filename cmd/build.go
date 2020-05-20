@@ -1,15 +1,13 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/spf13/afero"
+	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/liclac/sharlayan/builder"
-	"github.com/liclac/sharlayan/builder/tree"
 	"github.com/liclac/sharlayan/calibre"
+	"github.com/liclac/sharlayan/render"
+	"github.com/liclac/sharlayan/tree"
 )
 
 var buildCmd = &cobra.Command{
@@ -21,19 +19,8 @@ var buildCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		bld, err := builder.New(cfg)
-		if err != nil {
-			return err
-		}
-		root := builder.Root(bld, meta)
-		if root == nil {
-			return fmt.Errorf("root == nil, nothing to render")
-		}
-		fs := traceFS(cfg, afero.NewBasePathFs(afero.NewOsFs(), cfg.Build.Out))
-		if err := root.Render(fs, tree.ByID, "/_id/"); err != nil {
-			return err
-		}
-		return nil
+		fs := osfs.New(cfg.Build.Out)
+		return tree.Render(fs, false, "/", render.Root(cfg, meta))
 	},
 }
 
